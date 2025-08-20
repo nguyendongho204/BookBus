@@ -1,7 +1,11 @@
-
-
-
 <?php
+/**
+ * File: search_routes.php
+ * Mô tả: Trang tìm kiếm chuyến xe theo tuyến đường
+ * Chức năng: Tìm kiếm chuyến xe theo điểm đi, điểm đến, ngày khởi hành
+ * Tác giả: @nguyendongho204
+ * Ngày cập nhật: 2025-08-20
+ */
 
 include __DIR__ . '/libs/db_chuyenxe.php';
 
@@ -89,7 +93,7 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </div>
 <?php endif; ?>
 <div class="container mt-4 content-timkiem">
-<?php include 'timvexenhanh.php'; ?>
+<?php include 'quick_booking.php'; ?>
 <h3 class="mb-4">Kết quả tìm kiếm chuyến xe</h3>
 
 <?php if (count($results) > 0): ?>

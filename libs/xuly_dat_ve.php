@@ -16,7 +16,7 @@ require_once __DIR__ . '/db_chuyenxe.php'; // $pdo (SQLite PDO)
 */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../timkiemchuyenxe.php');
+    header('Location: ../search_routes.php');
     exit;
 }
 
@@ -37,7 +37,7 @@ $st = $pdo->prepare("SELECT id, gia_ve FROM chuyenxe WHERE id = ?");
 $st->execute([$id_chuyen]);
 $cx = $st->fetch(PDO::FETCH_ASSOC);
 if (!$cx) {
-    echo "<script>alert('Chuyen xe khong ton tai!');location.href='../timkiemchuyenxe.php';</script>";
+    echo "<script>alert('Chuyen xe khong ton tai!');location.href='../search_routes.php';</script>";
     exit;
 }
 $amount = (int)$cx['gia_ve'] * $so_luong;

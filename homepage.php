@@ -1,3 +1,12 @@
+<?php
+/**
+ * File: homepage.php
+ * Mô tả: Trang chủ chính của hệ thống đặt vé xe BookBus
+ * Chức năng: Hiển thị banner, form tìm vé nhanh, thông tin về dịch vụ
+ * Tác giả: @nguyendongho204
+ * Ngày cập nhật: 2025-08-20
+ */
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -22,7 +31,7 @@
 		  <div class="col-sm-12 col-md-12 col-lg-12">
 			<div class="banner-box">
 <!-- chèn form tìm vé xe vào ảnh -->
-<?php include 'timvexenhanh.php'; ?>    
+<?php include 'quick_booking.php'; ?>    
 			</div>
 		  </div>
 		</div>

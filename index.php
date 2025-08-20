@@ -16,22 +16,22 @@
 	{
 		//Main
 			case "TrangChu":
-				$ctrl="trangchu.php";
+				$ctrl="homepage.php";
 				break;
 			case "DatVe":
-				$ctrl="datve.php";
+				$ctrl="booking.php";
 				break;
 			case "HuongDan":
 				$ctrl="huongdan.php";
 				break;
 			case "DangKy":
-				$ctrl="dangky.php";
+				$ctrl="register.php";
 				break;
 			case "LienHe":
 				$ctrl="lienhe.php";
 				break;	
 		default:
-			$ctrl="trangchu.php";
+			$ctrl="homepage.php";
 			break;
 	}
 	
@@ -175,7 +175,7 @@ function showBookingSuccessModal(orderData) {
                         <a href="/src/tai-khoan/index.php?show=history" class="btn btn-primary" style="border-radius: 8px;">
                             <i class="fa fa-history"></i> Xem lịch sử đặt vé
                         </a>
-                        <a href="/src/timkiemchuyenxe.php" class="btn btn-success" style="border-radius: 8px;">
+                        <a href="/src/search_routes.php" class="btn btn-success" style="border-radius: 8px;">
                             <i class="fa fa-plus"></i> Đặt vé khác
                         </a>
                     </div>
@@ -206,7 +206,7 @@ function showBookingFailedModal() {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('bookingFailedModal')">Đóng</button>
-                        <a href="/src/timkiemchuyenxe.php" class="btn btn-primary">Thử lại</a>
+                        <a href="/src/search_routes.php" class="btn btn-primary">Thử lại</a>
                     </div>
                 </div>
             </div>

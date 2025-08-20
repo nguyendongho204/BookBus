@@ -14,8 +14,8 @@ $user = app_current_user();
 
 // Nếu chưa có user -> về trang chủ và mở popup đăng nhập
 if (!$user) {
-    $home = (is_file(dirname(__DIR__) . '/trangchu.php'))
-        ? $SITE_BASE . '/trangchu.php'
+    $home = (is_file(dirname(__DIR__) . '/homepage.php'))
+        ? $SITE_BASE . '/homepage.php'
         : $SITE_BASE . '/index.php';
 
     $back = $_SERVER['REQUEST_URI'] ?? ($SITE_BASE . '/tai-khoan/index.php');

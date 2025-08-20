@@ -65,7 +65,7 @@ try {
     
     echo "<h3 style='color: green;'>🎉 Hoàn thành sửa bảng!</h3>";
     echo "<div style='margin: 20px 0;'>";
-    echo "<a href='/src/timkiemchuyenxe.php' style='background: #ff5a2c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>🎫 Thử đặt vé lại</a>";
+    echo "<a href='/src/search_routes.php' style='background: #ff5a2c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>🎫 Thử đặt vé lại</a>";
     echo "</div>";
     
 } catch (Exception $e) {

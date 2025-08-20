@@ -51,7 +51,7 @@ if ($__SITE_BASE === '') { $__SITE_BASE = '/'; }
         <?php if (isset($_SESSION['user'])): ?>
           <li><a href="/src/tai-khoan/index.php"><i class="fa fa-user-circle"></i> Tài khoản của tôi</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a href="dangxuat.php"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
+    <li><a href="logout.php"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
         <?php else: ?>
           <li><a href="#" onclick="showLoginModal()"><i class="fa fa-sign-in"></i> Đăng Nhập</a></li>
           <li><a href="#" onclick="showRegisterModal()"><i class="fa fa-pencil"></i> Đăng Ký</a></li>
@@ -77,7 +77,7 @@ if ($__SITE_BASE === '') { $__SITE_BASE = '/'; }
 
       <!-- Logo -->
       <div class="logo">
-        <a href="trangchu.php">
+        <a href="homepage.php">
           <img src="images/logo-busbook.jpg" alt="BookBus Logo" style="height: 90px; width: 160px; margin-left: 40px;">
         </a>
       </div>
@@ -85,10 +85,10 @@ if ($__SITE_BASE === '') { $__SITE_BASE = '/'; }
       <!-- Menu -->
            
       <ul id="menu" class="nav navbar-nav BB-nav menu m-menu d-flex align-items-center gap-4 m-0" style="margin-left: 190px;">
-        <li class="active"><a href="trangchu.php"><strong>Trang chủ</strong></a></li>
-        <li><a href="datve.php"><strong>Đặt vé Online</strong></a></li>
+        <li class="active"><a href="homepage.php"><strong>Trang chủ</strong></a></li>
+        <li><a href="booking.php"><strong>Đặt vé Online</strong></a></li>
         <li><a href="huongdan.php"><strong>Hướng dẫn đặt vé</strong></a></li>
-        <li><a href="dangky.php"><strong>Đăng ký đại lý</strong></a></li>
+        <li><a href="register.php"><strong>Đăng ký đại lý</strong></a></li>
         <li><a href="lienhe.php"><strong>Liên hệ</strong></a></li>
       
         <?php if (!empty($_SESSION['user']) && (int)($_SESSION['user']['role'] ?? 1) === 0): ?>

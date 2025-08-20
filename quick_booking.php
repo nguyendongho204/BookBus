@@ -1,5 +1,12 @@
 <?php
-// timvexenhanh.php — widget tìm vé nhanh (đã sửa)
+/**
+ * File: quick_booking.php
+ * Mô tả: Widget tìm vé xe nhanh với form gọn gàng
+ * Chức năng: Form tìm kiếm nhanh chuyến xe theo điểm đi, điểm đến, ngày khởi hành
+ * Tác giả: @nguyendongho204
+ * Ngày cập nhật: 2025-08-20
+ */
+// quick_booking.php — widget tìm vé nhanh (đã sửa)
 include __DIR__ . '/libs/db_chuyenxe.php';
 
 // Chấp nhận cả 2 bộ tên tham số: (diem_di, diem_den, ngay_khoi_hanh, so_khach) và (from, to, date, seats)
@@ -122,7 +129,7 @@ $LOCATIONS = [
     action: thay bằng trang kết quả của bạn (ví dụ xemchuyenxe.php)
     method: GET để share link
   -->
-  <form id="quickSearch" action="timkiemchuyenxe.php" method="get" novalidate>
+  <form id="quickSearch" action="search_routes.php" method="get" novalidate>
     <div class="qs3-grid">
       <!-- Điểm đi -->
       <div class="qs3-field">
