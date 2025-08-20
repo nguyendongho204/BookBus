@@ -1,10 +1,10 @@
 <?php
-// check_account_status.php - Middleware kiểm tra tài khoản bị khóa
+// libs/check_account_status.php - Kiểm tra tài khoản bị khóa
 if (!function_exists('checkAccountStatus')) {
     function checkAccountStatus() {
         // Nếu chưa đăng nhập thì bỏ qua
         if (!isset($_SESSION['user'])) {
-            return;
+            return 'not_logged_in';
         }
 
         // Include database connection
@@ -15,7 +15,7 @@ if (!function_exists('checkAccountStatus')) {
         try {
             // Kiểm tra trạng thái tài khoản hiện tại
             $stmt = $pdo->prepare("
-                SELECT COALESCE(status, 1) as status, deleted_at 
+                SELECT COALESCE(status, 1) as status, deleted_at, name, email 
                 FROM daily_dangky 
                 WHERE id = ?
             ");
@@ -25,37 +25,24 @@ if (!function_exists('checkAccountStatus')) {
             // Nếu không tìm thấy user hoặc bị xóa
             if (!$user || !empty($user['deleted_at'])) {
                 session_destroy();
-                
-                // Dùng JavaScript redirect thay vì header() để tránh lỗi headers sent
-                echo '<script>window.location.href = "../login.php?account_deleted=1";</script>';
-                exit;
+                return 'deleted';
             }
 
-            // Nếu tài khoản bị khóa
+            // Nếu tài khoản bị khóa (status = 0)
             if ((int)$user['status'] === 0) {
-                // Lưu thông tin để hiện modal - SỬA CÁCH LẤY THÔNG TIN
-                $_SESSION['account_locked'] = [
-                    'name' => isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : 'User',
-                    'email' => isset($_SESSION['user']['email']) ? $_SESSION['user']['email'] : ''
+                $_SESSION['show_locked_modal'] = true;
+                $_SESSION['locked_account_info'] = [
+                    'name' => $user['name'],
+                    'email' => $user['email']
                 ];
-                
-                // Xóa session đăng nhập
-                session_destroy();
-                
-                // Dùng JavaScript redirect
-                echo '<script>window.location.href = "../login.php?locked=1";</script>';
-                exit;
+                return 'locked';
             }
 
-        } catch (Exception $e) {
-            // Lỗi database, log và tiếp tục
-            error_log("Check account status error: " . $e->getMessage());
+        } catch (PDOException $e) {
+            error_log("Lỗi kiểm tra trạng thái tài khoản: " . $e->getMessage());
         }
+        
+        return 'active';
     }
-}
-
-// Chỉ gọi khi có session active và user đã đăng nhập
-if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user'])) {
-    checkAccountStatus();
 }
 ?>

@@ -3,6 +3,18 @@
 	include "libs/remove-unicode.php";
 	//include "libs/PHPExcel/IOFactory.php";
 //Session
+	session_start();
+
+// ===== THÊM PHẦN NÀY - KIỂM TRA TRẠNG THÁI TÀI KHOẢN =====
+// Kiểm tra trạng thái tài khoản nếu đã đăng nhập
+if (isset($_SESSION['user'])) {
+    require_once "libs/check_account_status.php";
+    $account_status = checkAccountStatus();
+    
+    // Log để debug
+    error_log("Account status check: " . $account_status);
+}
+// ===== KẾT THÚC PHẦN THÊM =====
 
 //Site Redirect	
 	$ctrl="ctrls/c_index.php";
@@ -39,7 +51,14 @@
 	include "header.php";
 	
 //Body	
-	include $ctrl; 
+	include $ctrl;
+
+// ===== THÊM PHẦN NÀY - INCLUDE MODAL =====
+// Include modal thông báo tài khoản bị khóa (sẽ chỉ hiển thị nếu cần)
+if (isset($_SESSION['user'])) {
+    include "includes/locked_account_modal.php";
+}
+// ===== KẾT THÚC PHẦN THÊM =====
 ?>
 
 <script>
@@ -60,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// ... rest của script giữ nguyên ...
 function handleBookingSuccess() {
     // Lấy thông tin từ localStorage
     let orderData;
