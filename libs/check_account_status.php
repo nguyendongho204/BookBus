@@ -35,6 +35,10 @@ if (!function_exists('checkAccountStatus')) {
                     'name' => $user['name'],
                     'email' => $user['email']
                 ];
+                
+                // Thêm dòng này để đăng xuất user
+                unset($_SESSION['user']);
+                
                 return 'locked';
             }
 

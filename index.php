@@ -13,6 +13,20 @@ if (isset($_SESSION['user'])) {
     
     // Log để debug
     error_log("Account status check: " . $account_status);
+    
+    // ✅ XỬ LÝ KHI TÀI KHOẢN BỊ KHÓA
+    if ($account_status === 'locked') {
+        // checkAccountStatus đã unset $_SESSION['user'] và set modal session
+        // Reload trang để hiển thị modal
+        header('Location: index.php?account_locked=1');
+        exit;
+    }
+    
+    if ($account_status === 'deleted') {
+        // Nếu tài khoản bị xóa, redirect về login
+        header('Location: login.php?account_deleted=1');
+        exit;
+    }
 }
 // ===== KẾT THÚC PHẦN THÊM =====
 
