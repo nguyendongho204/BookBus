@@ -1,4 +1,17 @@
 <?php
+// Thêm vào đầu file payments/checkout_mock.php
+session_start();
+
+// Kiểm tra đăng nhập
+if (empty($_SESSION['user']['id'])) {
+    // Chuyển hướng về trang chủ với thông báo
+    header('Location: /src/trangchu.php?show=login&error=login_required');
+    exit;
+}
+
+// Tiếp tục code hiện tại...
+?>
+<?php
 require_once __DIR__ . '/../libs/db_chuyenxe.php';
 
 $id_chuyen = isset($_GET['id_chuyen']) ? (int)$_GET['id_chuyen'] : 0;

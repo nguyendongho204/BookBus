@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . '/includes/session_bootstrap.php'; ?>
+<?php require_once __DIR__ . '/includes/session_bootstrap.php';
+require_once __DIR__ . '/config.php'; ?>
 
 <title>Đặt vé xe BookBus – Các chuyến đi nội tỉnh Cần Thơ</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -558,6 +559,32 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 })();
 </script>
-<!-- Thêm vào cuối file header.php, trước </head> -->
-
-<script src="/src/assets/js/booking_success_modal.js"></script>
+ <script>
+// Thêm vào header.php để tự động mở modal
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showModal = urlParams.get('show');
+    
+    if (showModal === 'login') {
+        setTimeout(function() {
+            if (typeof showLoginModal === 'function') {
+                showLoginModal();
+                // Xóa parameter khỏi URL
+                urlParams.delete('show');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                history.replaceState(null, '', newUrl);
+            }
+        }, 300);
+    } else if (showModal === 'register') {
+        setTimeout(function() {
+            if (typeof showRegisterModal === 'function') {
+                showRegisterModal();
+                // Xóa parameter khỏi URL
+                urlParams.delete('show');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                history.replaceState(null, '', newUrl);
+            }
+        }, 300);
+    }
+});
+</script>

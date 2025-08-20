@@ -1275,3 +1275,18 @@ body {
 /* tăng ưu tiên cho các input/select trong card tìm vé */
 .qs3-card, .qs3-grid, .qs3-field { position: relative; }
 .qs3-field select, .qs3-field input { position: relative; z-index: 20; pointer-events: auto; }
+/* Animation cho modal */
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0; 
+        transform: translate(-50%, -60%); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translate(-50%, -50%); 
+    }
+}
+
+#loginRequiredModal div[style*="margin:8%"] {
+    animation: modalSlideIn 0.3s ease-out;
+}

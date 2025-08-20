@@ -1,7 +1,23 @@
 <?php
-// libs/xl_dangnhap.php (v5 - redirect luôn về trang chủ sau login)
+// libs/xl_dangnhap.php (FINAL FIX)
 declare(strict_types=1);
 
+// Define APP_BASE if not exists - QUAN TRỌNG!
+if (!defined('APP_BASE')) {
+    define('APP_BASE', '/src');
+}
+
+// Start session first
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+// Debug log
+error_log("LOGIN DEBUG - Start processing");
+error_log("LOGIN DEBUG - Session ID: " . session_id());
+error_log("LOGIN DEBUG - Session before: " . print_r($_SESSION, true));
+
+// Include session bootstrap AFTER defining APP_BASE
 require_once __DIR__ . '/../includes/session_bootstrap.php';
 
 // Nạp file kết nối DB gốc
@@ -24,9 +40,8 @@ if (isset($pdo) && $pdo instanceof PDO) {
     die('Không tìm thấy kết nối CSDL. Hãy đảm bảo libs/db.php khởi tạo $pdo/$conn/$db.');
 }
 
-// Trang chủ
-$home = APP_BASE . '/trangchu.php';
-if (!is_file(dirname(__DIR__) . '/trangchu.php')) $home = APP_BASE . '/index.php';
+// Trang chủ - SIMPLE PATH
+$home = '/src/trangchu.php';
 
 // Chỉ chấp nhận POST
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -37,6 +52,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
 // Input
 $identity = trim((string)($_POST['identity'] ?? $_POST['username'] ?? $_POST['email'] ?? ''));
 $password = (string)($_POST['password'] ?? '');
+
+error_log("LOGIN DEBUG - Identity: " . $identity);
 
 if ($identity === '' || $password === '') {
     header('Location: ' . $home . '?show=login&login_err=blank');
@@ -95,6 +112,8 @@ if (!$useTable) {
     http_response_code(500);
     die('Không tìm thấy bảng người dùng (quan_tri_vien hoặc daily_dangky).');
 }
+
+error_log("LOGIN DEBUG - Using table: " . $useTable);
 
 // ---- Lấy user theo bảng ----
 $user = null;
@@ -189,6 +208,11 @@ if ($useTable === 'quan_tri_vien') {
     }
 }
 
+error_log("LOGIN DEBUG - User found: " . ($user ? 'YES' : 'NO'));
+if ($user) {
+    error_log("LOGIN DEBUG - User data: " . print_r($user, true));
+}
+
 if (!$user) {
     header('Location: ' . $home . '?show=login&login_err=nouser');
     exit;
@@ -199,9 +223,15 @@ $hash = (string)($user['password'] ?? '');
 $ok = false;
 if ($hash !== '') {
     $info = password_get_info($hash);
-    if (!empty($info['algo'])) $ok = password_verify($password, $hash);
-    else $ok = hash_equals($hash, $password);
+    if (!empty($info['algo'])) {
+        $ok = password_verify($password, $hash);
+    } else {
+        $ok = hash_equals($hash, $password);
+    }
 }
+
+error_log("LOGIN DEBUG - Password check: " . ($ok ? 'PASS' : 'FAIL'));
+
 if (!$ok) {
     header('Location: ' . $home . '?show=login&login_err=wrongpass');
     exit;
@@ -215,7 +245,7 @@ if ($useTable === 'quan_tri_vien') {
     $sessionRole = ((int)($user['role'] ?? 0) === 1) ? 0 : 1; // daily_dangky: 1=admin,0=user
 }
 
-// Tạo session
+// Tạo session - QUAN TRỌNG!
 session_regenerate_id(true);
 $_SESSION['user'] = [
     'id'       => (int)$user['id'],
@@ -224,47 +254,16 @@ $_SESSION['user'] = [
     'role'     => $sessionRole,
 ];
 
+// Debug session sau khi set
+error_log("LOGIN DEBUG - Session after set: " . print_r($_SESSION, true));
+
+// Set cookie để backup (optional)
+if (!empty($user['email'])) {
+    setcookie('user_email', $user['email'], time() + (86400 * 30), '/'); // 30 days
+}
+
 // ---- Điều hướng sau đăng nhập ----
-// Luôn về trang chủ
+// Redirect về trang chủ với thông báo thành công
 header('Location: /src/trangchu.php?login_ok=1');
 exit();
-
-
-// ==== Kiểm tra mật khẩu & set session ====
-
-// Nếu không tìm thấy user
-if (!$user) {
-    header('Location: ' . $home . '?show=login&login_err=notfound');
-    exit;
-}
-
-// Kiểm tra mật khẩu
-$ok = false;
-if (isset($user['password'])) {
-    // Nếu DB dùng password_hash
-    if (password_verify($password, $user['password'])) {
-        $ok = true;
-    }
-    // Nếu DB lưu plain text (trường hợp cũ)
-    elseif ($password === $user['password']) {
-        $ok = true;
-    }
-}
-
-if (!$ok) {
-    header('Location: ' . $home . '?show=login&login_err=invalid');
-    exit;
-}
-
-// Đăng nhập thành công → set session đầy đủ
-$_SESSION['user'] = [
-    'id'       => $user['id'],         // 👈 Quan trọng để lưu vào dat_ve
-    'username' => $user['username'] ?? null,
-    'email'    => $user['email'] ?? null,
-    'sdt'      => $user['sdt'] ?? null,
-    'role'     => $user['role'] ?? null
-];
-
-// Redirect về trang chủ
-header('Location: ' . $home);
-exit;
+?>

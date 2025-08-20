@@ -1,11 +1,23 @@
 <?php
-// includes/whoami.php
-require_once __DIR__ . '/session_bootstrap.php';
-header('Content-Type: application/json; charset=utf-8');
+session_start();
+header('Content-Type: application/json');
 
-if (!empty($_SESSION['user'])) {
-    $name = $_SESSION['user']['name'] ?? ($_SESSION['user']['email'] ?? 'Tài khoản');
-    echo json_encode(['ok' => true, 'name' => $name], JSON_UNESCAPED_UNICODE);
-} else {
-    echo json_encode(['ok' => false], JSON_UNESCAPED_UNICODE);
+$response = ['ok' => false];
+
+if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
+    $user = $_SESSION['user'];
+    
+    if (isset($user['id']) && !empty($user['id'])) {
+        $response = [
+            'ok' => true,
+            'id' => $user['id'],
+            'user_id' => $user['id'],
+            'name' => $user['username'] ?? ($user['name'] ?? ($user['email'] ?? 'User')),
+            'email' => $user['email'] ?? null
+        ];
+    }
 }
+
+echo json_encode($response);
+exit;
+?>

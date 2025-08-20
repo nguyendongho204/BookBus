@@ -1,27 +1,24 @@
 <?php
-// /src/tai-khoan/_auth.php
-declare(strict_types=1);
-require_once __DIR__ . '/../includes/session_bootstrap.php';
+// tai-khoan/auth.php - SIMPLE FIX
 
-// Luôn chuẩn hoá base về gốc project (/src)
-$SITE_BASE = APP_BASE;
-if (preg_match('#/(tai-khoan|admin|libs|includes)(/.*)?$#', $SITE_BASE)) {
-    $SITE_BASE = rtrim(dirname($SITE_BASE), '/');
+// Start session if not started
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
 }
-if ($SITE_BASE === '' || $SITE_BASE === '.') { $SITE_BASE = '/'; }
 
-$user = app_current_user();
+// Define app_current_user function
+function app_current_user() {
+    return isset($_SESSION['user']) ? $_SESSION['user'] : null;
+}
 
-// Nếu chưa có user -> về trang chủ và mở popup đăng nhập
-if (!$user) {
-    $home = (is_file(dirname(__DIR__) . '/trangchu.php'))
-        ? $SITE_BASE . '/trangchu.php'
-        : $SITE_BASE . '/index.php';
+// Get current user
+$current_user = app_current_user();
 
-    $back = $_SERVER['REQUEST_URI'] ?? ($SITE_BASE . '/tai-khoan/index.php');
-    header('Location: ' . $home . '?show=login&redirect=' . urlencode($back) . '&reason=no_session');
+// Redirect if not logged in
+if (!$current_user) {
+    header('Location: /src/trangchu.php?show=login&auth_required=1');
     exit;
 }
 
-// Cho các file khác dùng sẵn
-$userId = (int)$user['id'];
+// User is logged in, continue...
+?>
