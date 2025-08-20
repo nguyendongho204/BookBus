@@ -1,5 +1,5 @@
 <?php
-// tai-khoan/auth.php - SIMPLE FIX
+// tai-khoan/_auth.php - FIXED VERSION
 
 // Start session if not started
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -19,6 +19,10 @@ if (!$current_user) {
     header('Location: /src/trangchu.php?show=login&auth_required=1');
     exit;
 }
+
+// Set user variables for use in other files
+$user = $current_user;
+$userId = (int)($user['id'] ?? 0);
 
 // User is logged in, continue...
 ?>
