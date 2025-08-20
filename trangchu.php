@@ -11,8 +11,18 @@
 </head>
 <body>
 
+<?php
+// KHÔNG GỌI session_start() vì header.php đã gọi rồi
+// Chỉ require middleware sau khi header đã start session
+?>
+
   <!-- chèn header vào trang chủ -->
 <?php include_once('header.php'); ?>
+
+<?php
+// THÊM MIDDLEWARE SAU KHI INCLUDE HEADER
+require_once __DIR__ . '/libs/check_account_status.php';
+?>
 
 <section class="banner">
   <div id="banner-new" class="owl-carousel">
@@ -31,6 +41,7 @@
   </div>  
 </section>
 
+<!-- Phần còn lại giữ nguyên... -->
 <section class="dv" id="dv">
   <div class="container">
     <div class="row">
@@ -184,3 +195,6 @@
 </section>
 
 <?php include_once('footer.php'); ?>
+
+</body>
+</html>
