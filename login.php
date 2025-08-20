@@ -462,5 +462,11 @@ unset($_SESSION['login_error']);
         }
     });
     </script>
+    <?php
+// Hiển thị modal tài khoản bị khóa nếu cần
+if (file_exists("includes/locked_account_modal.php")) {
+    include "includes/locked_account_modal.php";
+}
+?>
 </body>
 </html>

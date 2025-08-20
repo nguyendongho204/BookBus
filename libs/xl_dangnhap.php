@@ -164,19 +164,21 @@ if ($useTable === 'quan_tri_vien') {
     }
 } else {
     if ($mode === 'pdo') {
-        $st = $pdo->prepare('SELECT id, name, email, phone, password, role FROM daily_dangky WHERE email = ? OR phone = ? OR name = ? LIMIT 1');
+        $st = $pdo->prepare('SELECT id, name, email, phone, password, role, status, deleted_at FROM daily_dangky WHERE email = ? OR phone = ? OR name = ? LIMIT 1');
         $st->execute([$identity, $identity, $identity]);
         if ($row = $st->fetch()) {
             $user = [
-                'id'       => $row['id'],
-                'username' => $row['name'],
-                'email'    => $row['email'] ?? null,
-                'password' => $row['password'],
-                'role'     => isset($row['role']) ? (int)$row['role'] : 0,
+                'id'        => $row['id'],
+                'username'  => $row['name'],
+                'email'     => $row['email'] ?? null,
+                'password'  => $row['password'],
+                'role'      => isset($row['role']) ? (int)$row['role'] : 0,
+                'status'    => isset($row['status']) ? (int)$row['status'] : 1,
+                'deleted_at' => $row['deleted_at'] ?? null,
             ];
         }
     } elseif ($mode === 'mysqli') {
-        $sql = 'SELECT id, name, email, phone, password, role FROM daily_dangky WHERE email = ? OR phone = ? OR name = ? LIMIT 1';
+        $sql = 'SELECT id, name, email, phone, password, role, status, deleted_at FROM daily_dangky WHERE email = ? OR phone = ? OR name = ? LIMIT 1';
         $st = $conn->prepare($sql);
         if (!$st) { http_response_code(500); die('SQL error: '.$conn->error); }
         $st->bind_param('sss', $identity, $identity, $identity);
@@ -184,25 +186,29 @@ if ($useTable === 'quan_tri_vien') {
         $res = $st->get_result();
         if ($res && $row = $res->fetch_assoc()) {
             $user = [
-                'id'       => $row['id'],
-                'username' => $row['name'],
-                'email'    => $row['email'] ?? null,
-                'password' => $row['password'],
-                'role'     => isset($row['role']) ? (int)$row['role'] : 0,
+                'id'        => $row['id'],
+                'username'  => $row['name'],
+                'email'     => $row['email'] ?? null,
+                'password'  => $row['password'],
+                'role'      => isset($row['role']) ? (int)$row['role'] : 0,
+                'status'    => isset($row['status']) ? (int)$row['status'] : 1,
+                'deleted_at' => $row['deleted_at'] ?? null,
             ];
         }
         $st->close();
     } else {
-        $st = $db->prepare('SELECT id, name, email, phone, password, role FROM daily_dangky WHERE email = :i OR phone = :i OR name = :i LIMIT 1');
+        $st = $db->prepare('SELECT id, name, email, phone, password, role, status, deleted_at FROM daily_dangky WHERE email = :i OR phone = :i OR name = :i LIMIT 1');
         $st->bindValue(':i', $identity, SQLITE3_TEXT);
         $res = $st->execute();
         if ($res && ($row = $res->fetchArray(SQLITE3_ASSOC))) {
             $user = [
-                'id'       => $row['id'],
-                'username' => $row['name'],
-                'email'    => $row['email'] ?? null,
-                'password' => $row['password'],
-                'role'     => isset($row['role']) ? (int)$row['role'] : 0,
+                'id'        => $row['id'],
+                'username'  => $row['name'],
+                'email'     => $row['email'] ?? null,
+                'password'  => $row['password'],
+                'role'      => isset($row['role']) ? (int)$row['role'] : 0,
+                'status'    => isset($row['status']) ? (int)$row['status'] : 1,
+                'deleted_at' => $row['deleted_at'] ?? null,
             ];
         }
     }
@@ -237,6 +243,37 @@ if (!$ok) {
     exit;
 }
 
+// ===== THÊM PHẦN KIỂM TRA TRẠNG THÁI TÀI KHOẢN =====
+if ($useTable === 'daily_dangky') {
+    // Kiểm tra tài khoản đã bị xóa chưa
+    if (isset($user['deleted_at']) && $user['deleted_at'] !== null) {
+        error_log("LOGIN DEBUG - Account is deleted. User ID: " . $user['id']);
+        header('Location: ' . $home . '?show=login&login_err=account_deleted');
+        exit;
+    }
+    
+    // Kiểm tra trạng thái tài khoản (status = 0 là đã bị khóa)
+    if (isset($user['status']) && (int)$user['status'] === 0) {
+        error_log("LOGIN DEBUG - Account is locked. User ID: " . $user['id']);
+        
+        // Lưu thông tin tài khoản bị khóa vào session để hiển thị chi tiết trong modal
+        if (!empty($user['username']) || !empty($user['email'])) {
+            $_SESSION['locked_account_info'] = [
+                'name' => $user['username'],
+                'email' => $user['email']
+            ];
+        }
+        
+        // Set session cho login_error
+        $_SESSION['login_error'] = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
+        
+        // Chuyển hướng về trang đăng nhập với thông báo lỗi
+        header('Location: ' . $home . '?show=login&login_err=account_locked');
+        exit;
+    }
+}
+// ===== KẾT THÚC PHẦN KIỂM TRA =====
+
 // Chuẩn hoá role
 $sessionRole = null;
 if ($useTable === 'quan_tri_vien') {
@@ -252,6 +289,7 @@ $_SESSION['user'] = [
     'username' => (string)$user['username'],
     'email'    => $user['email'] ?? null,
     'role'     => $sessionRole,
+    'status'   => isset($user['status']) ? (int)$user['status'] : 1, // Thêm trạng thái vào session
 ];
 
 // Debug session sau khi set

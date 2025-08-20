@@ -1,115 +1,75 @@
 <?php
-// includes/locked_account_modal.php - Modal thông báo tài khoản bị khóa
-// File này sẽ được include vào index.php
+// Chỉ hiển thị modal nếu có thông báo lỗi về tài khoản bị khóa
+// và có thông tin về tài khoản bị khóa
+$show_locked_modal = false;
 
-// Kiểm tra có hiển thị modal không
-$show_locked_modal = isset($_SESSION['show_locked_modal']) && $_SESSION['show_locked_modal'] === true;
-$account_info = $_SESSION['locked_account_info'] ?? [];
+// Kiểm tra từ session
+if (isset($_SESSION['login_error']) && 
+    strpos($_SESSION['login_error'], 'bị khóa') !== false && 
+    isset($_SESSION['locked_account_info'])) {
+    $show_locked_modal = true;
+}
 
-// Nếu cần hiển thị, tạo modal và hiển thị
-if ($show_locked_modal):
+// Kiểm tra từ URL parameter
+if (isset($_GET['login_err']) && $_GET['login_err'] === 'account_locked') {
+    $show_locked_modal = true;
+}
+
+// Thông tin tài khoản bị khóa
+$locked_name = $_SESSION['locked_account_info']['name'] ?? 'User';
+$locked_email = $_SESSION['locked_account_info']['email'] ?? '';
+
+// Xóa session để không hiển thị modal nhiều lần
+if ($show_locked_modal) {
+    // Giữ lại thông tin tài khoản bị khóa chỉ một lần hiển thị
+    unset($_SESSION['locked_account_info']);
+}
 ?>
+
+<?php if ($show_locked_modal): ?>
 <!-- Modal Tài khoản bị khóa -->
-<div class="modal fade" id="lockedAccountModal" tabindex="-1" aria-labelledby="lockedAccountModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius: 10px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-      <div class="modal-header bg-danger text-white" style="border-radius: 10px 10px 0 0;">
-        <h5 class="modal-title" id="lockedAccountModalLabel">
-          <i class="fa fa-lock me-2"></i> Tài khoản bị khóa
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="closeLockedModal()"></button>
-      </div>
-      <div class="modal-body text-center p-4">
-        <div class="mb-4" style="font-size: 64px;">🔒</div>
-        
-        <h4 class="text-danger mb-3">Tài khoản của bạn đã bị khóa</h4>
-        
-        <?php if (!empty($account_info['name'])): ?>
-        <p class="mb-1">Xin chào <strong><?php echo htmlspecialchars($account_info['name']); ?></strong>,</p>
-        <?php endif; ?>
-        
-        <p class="text-muted mb-4">
-          Tài khoản của bạn đã bị tạm khóa bởi quản trị viên.
-          <br>Vui lòng liên hệ quản trị viên để biết thêm chi tiết.
-        </p>
-        
-        <div class="alert alert-warning">
-          <i class="fa fa-info-circle me-2"></i>
-          Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ với chúng tôi qua:
-          <br>
-          <strong>Email:</strong> support@bookbus.com
-          <br>
-          <strong>Hotline:</strong> 1900 xxxx
+<div class="modal fade" id="lockedAccountModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="lockedAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="lockedAccountModalLabel">
+                    <i class="fas fa-lock me-2"></i>Tài khoản bị khóa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-container mb-3">
+                        <i class="fas fa-user-lock fa-4x text-danger"></i>
+                    </div>
+                    <h4 class="fw-bold">Tài khoản của bạn đã bị khóa</h4>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <p class="mb-1"><strong>Tên tài khoản:</strong> <?php echo htmlspecialchars($locked_name); ?></p>
+                    <?php if (!empty($locked_email)): ?>
+                    <p class="mb-1"><strong>Email:</strong> <?php echo htmlspecialchars($locked_email); ?></p>
+                    <?php endif; ?>
+                </div>
+                
+                <p>Tài khoản của bạn đã bị khóa vì lý do bảo mật hoặc vi phạm điều khoản sử dụng.</p>
+                <p>Vui lòng liên hệ với quản trị viên để biết thêm chi tiết và mở khóa tài khoản.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="mailto:admin@bookbus.com" class="btn btn-outline-primary">
+                    <i class="fas fa-envelope me-2"></i>Liên hệ admin
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
         </div>
-      </div>
-      <div class="modal-footer justify-content-center" style="border-top: 1px solid #eee;">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeLockedModal()">
-          <i class="fa fa-times me-1"></i> Đóng
-        </button>
-        <a href="/login.php" class="btn btn-primary">
-          <i class="fa fa-home me-1"></i> Về trang đăng nhập
-        </a>
-      </div>
     </div>
-  </div>
 </div>
 
 <script>
-// Hiển thị modal khi trang load xong
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🔒 Checking locked account modal...');
-  
-  <?php if($show_locked_modal): ?>
-  console.log('🔒 Showing locked account modal');
-  showLockedAccountModal();
-  <?php endif; ?>
+    // Hiển thị modal khi trang tải xong
+    var lockedModal = new bootstrap.Modal(document.getElementById('lockedAccountModal'));
+    lockedModal.show();
 });
-
-function showLockedAccountModal() {
-  if (typeof bootstrap !== 'undefined') {
-    var myModal = new bootstrap.Modal(document.getElementById('lockedAccountModal'));
-    myModal.show();
-  } else {
-    // Fallback nếu không có Bootstrap
-    var modal = document.getElementById('lockedAccountModal');
-    modal.style.display = 'block';
-    modal.classList.add('show');
-    
-    // Tạo backdrop
-    var backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop fade show';
-    document.body.appendChild(backdrop);
-  }
-}
-
-function closeLockedModal() {
-  // Xóa session sau khi hiển thị
-  fetch('/src/ajax/clear_locked_session.php')
-    .then(response => response.json())
-    .then(data => {
-      console.log('🔒 Cleared locked session');
-    })
-    .catch(error => {
-      console.error('Error clearing locked session:', error);
-    });
-    
-  if (typeof bootstrap !== 'undefined') {
-    var myModal = bootstrap.Modal.getInstance(document.getElementById('lockedAccountModal'));
-    if (myModal) myModal.hide();
-  } else {
-    // Fallback
-    var modal = document.getElementById('lockedAccountModal');
-    modal.style.display = 'none';
-    modal.classList.remove('show');
-    
-    // Xóa backdrop
-    var backdrop = document.querySelector('.modal-backdrop');
-    if (backdrop) backdrop.remove();
-  }
-}
 </script>
-<?php
-// Xóa session sau khi hiển thị để không hiển thị lại khi refresh
-$_SESSION['show_locked_modal'] = false;
-endif;
-?>
+<?php endif; ?>

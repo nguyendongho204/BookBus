@@ -6,10 +6,11 @@ require_once __DIR__ . "/_layout_top.php";
 require_once __DIR__ . "/../libs/db.php";
 
 $id = (int)($_GET['id'] ?? 0);
-$st = $db->prepare("SELECT id, name, email FROM daily_dangky WHERE id=:id");
-$st->bindValue(':id',$id,SQLITE3_INTEGER);
-$rs = $st->execute();
-$u = $rs->fetchArray(SQLITE3_ASSOC);
+// Sử dụng biến $pdo từ file db.php thay vì $db
+$st = $pdo->prepare("SELECT id, name, email FROM daily_dangky WHERE id = :id");
+$st->bindValue(':id', $id, PDO::PARAM_INT);
+$st->execute();
+$u = $st->fetch();
 if (!$u) { header("Location: users.php"); exit; }
 ?>
 <link rel="stylesheet" href="/assets/css/styleaccount.css">

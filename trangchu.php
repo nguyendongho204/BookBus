@@ -195,7 +195,15 @@ require_once __DIR__ . '/libs/check_account_status.php';
 </section>
 
 <?php include_once('footer.php'); ?>
-
+<?php
+// Ở cuối file, trước khi đóng thẻ </body>
+// Hiển thị modal tài khoản bị khóa nếu cần
+if (isset($_GET['login_err']) && $_GET['login_err'] === 'account_locked') {
+    if (file_exists("../includes/locked_account_modal.php")) {
+        include "../includes/locked_account_modal.php";
+    }
+}
+?>
 </body>
 
 </html>
