@@ -1,6 +1,5 @@
 <?php require_once __DIR__ . '/../libs/admin_guard.php'; ?>
 <?php
-require_once __DIR__.'/_guard.php';
 require_once __DIR__.'/../libs/db.php';
 
 $id  = (int)($_POST['id'] ?? 0);
@@ -11,9 +10,9 @@ if ($id <= 0 || $pw1 === '' || $pw1 !== $pw2) { header("Location: users.php"); e
 
 $hash = password_hash($pw1, PASSWORD_BCRYPT);
 
-$st = $db->prepare("UPDATE daily_dangky SET password=:pw WHERE id=:id");
-$st->bindValue(':pw', $hash, SQLITE3_TEXT);
-$st->bindValue(':id', $id, SQLITE3_INTEGER);
+$st = $pdo->prepare("UPDATE daily_dangky SET password=:pw WHERE id=:id");
+$st->bindValue(':pw', $hash, PDO::PARAM_STR);
+$st->bindValue(':id', $id, PDO::PARAM_INT);
 $st->execute();
 
 header("Location: users.php");
