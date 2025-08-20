@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/session_bootstrap.php';
 if (empty($_SESSION['user']['id'])) {
-  header('Location: /src/trangchu.php?show=login'); exit;
+  header('Location: /src/homepage.php?show=login'); exit;
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {

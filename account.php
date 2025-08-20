@@ -1,4 +1,11 @@
 <?php
+/**
+ * File: account.php
+ * Mô tả: Trang tài khoản và modal đăng nhập
+ * Chức năng: Hiển thị modal đăng nhập, đăng ký, quên mật khẩu
+ * Tác giả: @nguyendongho204
+ * Ngày cập nhật: 2025-08-20
+ */
 include 'header.php'; // hoặc require 'header.php';
 ?>
 

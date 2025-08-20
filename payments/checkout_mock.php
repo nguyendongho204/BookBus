@@ -110,7 +110,7 @@ body{background:var(--bg);}
             <button class="btn btn-momo btn-lg" type="submit">Thanh toán</button>
           </div>
           <div class="text-center mt-2">
-            <a href="../timkiemchuyenxe.php" class="text-decoration-none small">← Quay lại tìm chuyến</a>
+            <a href="../search_routes.php" class="text-decoration-none small">← Quay lại tìm chuyến</a>
           </div>
         </form>
       </div>

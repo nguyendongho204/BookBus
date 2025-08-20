@@ -67,7 +67,7 @@ function showBookingSuccessModal(orderData) {
                         <a href="/src/tai-khoan/index.php?show=history" class="btn btn-primary">
                             <i class="fa fa-ticket"></i> Xem lịch sử đặt vé
                         </a>
-                        <a href="/src/timkiemchuyenxe.php" class="btn btn-success">
+                        <a href="/src/search_routes.php" class="btn btn-success">
                             <i class="fa fa-plus"></i> Đặt vé khác
                         </a>
                     </div>
@@ -133,7 +133,7 @@ function showBookingFailedModal() {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <a href="/src/timkiemchuyenxe.php" class="btn btn-primary">Thử lại</a>
+                        <a href="/src/search_routes.php" class="btn btn-primary">Thử lại</a>
                     </div>
                 </div>
             </div>

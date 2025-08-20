@@ -155,7 +155,7 @@ body { background: var(--bb-bg); }
             <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     <div class="bb-title">Xin chào, <?php echo htmlspecialchars($username ?: 'Người dùng'); ?> 👋</div>
-                    <a class="bb-logout small" href="/src/dangxuat.php"><i class="fa fa-sign-out"></i> Đăng xuất</a>
+                    <a class="bb-logout small" href="/src/logout.php"><i class="fa fa-sign-out"></i> Đăng xuất</a>
                 </div>
                 <div class="bb-sub mt-1">Quản lý thông tin cá nhân, đổi mật khẩu và xem lịch sử đặt vé của bạn.</div>
                 <div class="mt-2 d-flex gap-2 flex-wrap">

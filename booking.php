@@ -1,4 +1,11 @@
 <?php
+/**
+ * File: booking.php
+ * Mô tả: Trang đặt vé xe buýt trực tuyến
+ * Chức năng: Hiển thị form đặt vé, xử lý thông tin khách hàng, tích hợp thanh toán
+ * Tác giả: @nguyendongho204
+ * Ngày cập nhật: 2025-08-20
+ */
 require_once __DIR__ . '/libs/db_chuyenxe.php'; // tạo $pdo (SQLite)
 
 $id_chuyen = isset($_GET['id_chuyen']) ? (int)$_GET['id_chuyen'] : 0;

@@ -20,7 +20,7 @@
       <a class="nav-link <?= ($active ?? '')==='orders'?'active':'' ?>" href="orders.php">Đơn đặt</a>
       <a class="nav-link <?= ($active ?? '')==='trips'?'active':'' ?>" href="trips.php">Chuyến xe</a>
       <a class="nav-link <?= ($active ?? '')==='users'?'active':'' ?>" href="users.php">Người dùng</a>
-      <a class="nav-link" href="../trangchu.php">↩ Trang ngoài</a>
+      <a class="nav-link" href="../homepage.php">↩ Trang ngoài</a>
     </nav>
     <div class="admin-user">
       <span class="hello">Xin chào, <?= htmlspecialchars($_SESSION['user']['username'] ?? ($_SESSION['user']['email'] ?? 'admin')) ?></span>

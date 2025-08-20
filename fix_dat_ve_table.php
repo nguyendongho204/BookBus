@@ -74,7 +74,7 @@ try {
     
     echo "<h3 style='color: green;'>🎉 Hoàn thành!</h3>";
     echo "<div style='margin: 20px 0;'>";
-    echo "<a href='/src/timkiemchuyenxe.php' style='background: #ff5a2c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;'>🎫 Thử đặt vé</a>";
+    echo "<a href='/src/search_routes.php' style='background: #ff5a2c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;'>🎫 Thử đặt vé</a>";
     echo "<a href='/src/tai-khoan/index.php?show=history' style='background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>📋 Xem lịch sử</a>";
     echo "</div>";
     

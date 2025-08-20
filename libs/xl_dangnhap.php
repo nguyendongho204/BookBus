@@ -25,8 +25,8 @@ if (isset($pdo) && $pdo instanceof PDO) {
 }
 
 // Trang chủ
-$home = APP_BASE . '/trangchu.php';
-if (!is_file(dirname(__DIR__) . '/trangchu.php')) $home = APP_BASE . '/index.php';
+$home = APP_BASE . '/homepage.php';
+if (!is_file(dirname(__DIR__) . '/homepage.php')) $home = APP_BASE . '/index.php';
 
 // Chỉ chấp nhận POST
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -226,7 +226,7 @@ $_SESSION['user'] = [
 
 // ---- Điều hướng sau đăng nhập ----
 // Luôn về trang chủ
-header('Location: /src/trangchu.php?login_ok=1');
+header('Location: /src/homepage.php?login_ok=1');
 exit();
 
 
