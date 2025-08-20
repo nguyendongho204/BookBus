@@ -711,12 +711,12 @@ $status = strtolower($booking['payment_status'] ?? '');
             <div class="passenger-grid">
                 <div class="passenger-item">
                     <div class="passenger-label">Họ và tên</div>
-                    <div class="passenger-value"><?php echo htmlspecialchars($booking['ten_khach'] ?? $booking['user_name'] ?? 'Lâm Hiếu Huy'); ?></div>
+                    <div class="passenger-value"><?php echo htmlspecialchars($booking['ho_ten'] ?? $user_info['name'] ?? 'Chưa cập nhật'); ?></div>
                 </div>
                 
                 <div class="passenger-item">
                     <div class="passenger-label">Số điện thoại</div>
-                    <div class="passenger-value"><?php echo htmlspecialchars($booking['so_dien_thoai'] ?? 'Chưa cập nhật'); ?></div>
+                    <div class="passenger-value"><?php echo htmlspecialchars($booking['sdt'] ?? 'Chưa cập nhật'); ?></div>
                 </div>
                 
                 <div class="passenger-item">

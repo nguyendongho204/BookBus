@@ -3,7 +3,7 @@
 $pageTitle = "Quản lý tài khoản";
 $active = "users";
 require_once __DIR__ . "/_layout_top.php";
-require_once __DIR__ . "/../libs/db.php";
+require_once __DIR__ . "/../libs/db.php"; // Sử dụng $pdo
 
 /* ---------- Bộ lọc ---------- */
 $keyword = trim($_GET['q'] ?? '');
@@ -11,18 +11,26 @@ $roleF   = $_GET['role'] ?? '';
 $statusF = $_GET['status'] ?? '';
 
 $where = [];
+$params = [];
+
 if ($keyword !== '') {
-  $kw = SQLite3::escapeString($keyword);
-  $where[] = "(name LIKE '%$kw%' OR email LIKE '%$kw%' OR phone LIKE '%$kw%')";
+  $where[] = "(name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+  $params[] = "%$keyword%";
+  $params[] = "%$keyword%";
+  $params[] = "%$keyword%";
 }
 if ($roleF !== '' && ($roleF === '0' || $roleF === '1')) {
-  $where[] = "COALESCE(role,0) = ".(int)$roleF;
+  $where[] = "COALESCE(role,0) = ?";
+  $params[] = (int)$roleF;
 }
 if ($statusF !== '' && in_array($statusF, ['0','1','2'], true)) {
-  // 1=Hoạt động, 0=Đã khóa, 2=Đã xoá (mềm)
-  if ($statusF === '2')       $where[] = "deleted_at IS NOT NULL";
-  elseif ($statusF === '1')  { $where[] = "deleted_at IS NULL AND COALESCE(status,1)=1"; }
-  else                       { $where[] = "deleted_at IS NULL AND COALESCE(status,1)=0"; }
+  if ($statusF === '2') {
+    $where[] = "deleted_at IS NOT NULL";
+  } elseif ($statusF === '1') {
+    $where[] = "deleted_at IS NULL AND COALESCE(status,1) = 1";
+  } else {
+    $where[] = "deleted_at IS NULL AND COALESCE(status,1) = 0";
+  }
 }
 
 $sql = "
@@ -32,10 +40,14 @@ $sql = "
          deleted_at
   FROM daily_dangky
 ";
-if ($where) $sql .= " WHERE ".implode(" AND ", $where);
+if ($where) {
+  $sql .= " WHERE ".implode(" AND ", $where);
+}
 $sql .= " ORDER BY id DESC";
 
-$rows = $db->query($sql);
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <style>
 /* Chỉ áp dụng cho trang này để tránh ảnh hưởng chỗ khác */
@@ -89,8 +101,14 @@ $rows = $db->query($sql);
             </tr>
           </thead>
           <tbody>
-          <?php $hasRow = false; ?>
-          <?php while ($u = $rows->fetchArray(SQLITE3_ASSOC)): $hasRow = true; ?>
+          <?php if (empty($rows)): ?>
+            <tr>
+              <td colspan="7" class="text-center text-muted py-5">
+                Không có dữ liệu phù hợp.
+              </td>
+            </tr>
+          <?php else: ?>
+            <?php foreach ($rows as $u): ?>
             <tr>
               <td>#<?= $u['id'] ?></td>
               <td><?= htmlspecialchars($u['name'] ?? '') ?></td>
@@ -177,14 +195,7 @@ $rows = $db->query($sql);
                 </div>
               </td>
             </tr>
-          <?php endwhile; ?>
-
-          <?php if (!$hasRow): ?>
-            <tr>
-              <td colspan="7" class="text-center text-muted py-5">
-                Không có dữ liệu phù hợp.
-              </td>
-            </tr>
+            <?php endforeach; ?>
           <?php endif; ?>
           </tbody>
         </table>

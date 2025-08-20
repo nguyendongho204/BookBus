@@ -17,17 +17,32 @@ $id = (int)($_GET['id'] ?? 0);
 $old = $_SESSION['trip_form'] ?? null;
 if ($old) { unset($_SESSION['trip_form']); }
 
+// Check for success messages
+$success_type = $_GET['success'] ?? '';
+$trip_id = $_GET['trip_id'] ?? '';
+$route = $_GET['route'] ?? '';
+
 $trip = [
   'ten_nhaxe'=>'','loai_xe'=>'','diem_di'=>'','diem_den'=>'',
   'ngay_di'=>'','gio_di'=>'','gio_den'=>'','gia_ve'=>'','so_ghe'=>'','so_ghe_con'=>''
 ];
-if ($id>0 && !$old) {
-  $st = $pdo->prepare("SELECT * FROM chuyenxe WHERE id=:id");
-  $st->execute([':id'=>$id]);
-  $row = $st->fetch(PDO::FETCH_ASSOC);
-  if ($row) $trip = $row;
+
+// If success=create, reset form for new entry
+if ($success_type === 'create') {
+    $trip = [
+        'ten_nhaxe'=>'','loai_xe'=>'','diem_di'=>'','diem_den'=>'',
+        'ngay_di'=>'','gio_di'=>'','gio_den'=>'','gia_ve'=>'','so_ghe'=>'','so_ghe_con'=>''
+    ];
+    $id = 0; // Reset to create mode
+} else {
+    if ($id>0 && !$old) {
+        $st = $pdo->prepare("SELECT * FROM chuyenxe WHERE id=:id");
+        $st->execute([':id'=>$id]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        if ($row) $trip = $row;
+    }
+    if ($old) { $trip = array_merge($trip, $old); }
 }
-if ($old) { $trip = array_merge($trip, $old); }
 
 $today = date('Y-m-d');
 $nowHHmm = date('H:i');
@@ -47,6 +62,245 @@ $nowHHmm = date('H:i');
 .invalid-feedback{ display:none; color:#ef4444; font-weight:500; margin-top:6px; }
 .input-wrap .form-control.is-invalid ~ .invalid-feedback,
 .input-wrap .form-select.is-invalid ~ .invalid-feedback{ display:block; }
+
+/* Success Modal Styles */
+.success-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.success-modal-overlay.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+.success-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideInUp 0.4s ease-out;
+    overflow: hidden;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    filter: blur(30px);
+}
+
+.success-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+    animation: bounce 1s ease-in-out;
+    position: relative;
+    z-index: 2;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 2;
+}
+
+.modal-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.trip-info {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-left: 4px solid #22c55e;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.btn-primary-custom {
+    background: #ff5722;
+    color: white;
+}
+
+.btn-primary-custom:hover {
+    background: #e64a19;
+    transform: translateY(-1px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary-custom {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-secondary-custom:hover {
+    background: #e2e8f0;
+    color: #475569;
+    text-decoration: none;
+}
+
+/* Auto-close countdown */
+.countdown-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    width: 100%;
+    animation: countdown 10s linear forwards;
+}
+
+@keyframes countdown {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+.countdown-text {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .success-modal {
+        margin: 20px;
+        width: calc(100% - 40px);
+        max-width: calc(100% - 40px);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+
+/* Ensure modal stays centered even on scroll */
+body.modal-open {
+    overflow: hidden;
+}
 </style>
 
 <div class="form-card">
@@ -161,7 +415,145 @@ $nowHHmm = date('H:i');
   </form>
 </div>
 
+<!-- Success Modal -->
+<?php if ($success_type): ?>
+<div class="success-modal-overlay" id="successModal">
+    <div class="success-modal">
+        <div class="modal-header">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="modal-title">
+                <?= $success_type === 'create' ? 'Thêm chuyến xe thành công!' : 'Cập nhật thành công!' ?>
+            </div>
+            <div class="modal-subtitle">
+                <?= $success_type === 'create' ? 'Chuyến xe mới đã được tạo' : 'Thông tin chuyến xe đã được cập nhật' ?>
+            </div>
+        </div>
+        
+        <div class="modal-body">
+            <?php if ($success_type === 'create' && $route): ?>
+            <div class="trip-info">
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="fas fa-hashtag"></i> Mã chuyến
+                    </span>
+                    <span class="info-value">#<?= htmlspecialchars($trip_id) ?></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="fas fa-route"></i> Tuyến đường
+                    </span>
+                    <span class="info-value"><?= htmlspecialchars($route) ?></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="fas fa-clock"></i> Thời gian tạo
+                    </span>
+                    <span class="info-value"><?= date('H:i - d/m/Y') ?></span>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div class="modal-actions">
+                <a href="trips.php" class="modal-btn btn-primary-custom">
+                    <i class="fas fa-list"></i>
+                    Xem danh sách
+                </a>
+                <button class="modal-btn btn-secondary-custom" onclick="closeSuccessModal()">
+                    <i class="fas fa-plus"></i>
+                    Thêm chuyến khác
+                </button>
+            </div>
+        </div>
+        
+        <!-- Auto-close countdown bar -->
+        <div class="countdown-bar"></div>
+        <div class="countdown-text" id="countdownText">Tự động đóng sau <span id="countdownNumber">10</span>s</div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script>
+// Success Modal Functions
+let countdownTimer;
+let currentCountdown = 10;
+
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        startCountdown();
+    }
+}
+
+function closeSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+        }
+        // Clean URL
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, 'trips_edit.php');
+        }
+    }
+}
+
+function startCountdown() {
+    const countdownElement = document.getElementById('countdownNumber');
+    
+    countdownTimer = setInterval(function() {
+        currentCountdown--;
+        if (countdownElement) {
+            countdownElement.textContent = currentCountdown;
+        }
+        
+        if (currentCountdown <= 0) {
+            clearInterval(countdownTimer);
+            closeSuccessModal();
+        }
+    }, 1000);
+}
+
+// Show modal if success parameter exists
+<?php if ($success_type): ?>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(showSuccessModal, 100);
+});
+<?php endif; ?>
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('success-modal-overlay')) {
+        closeSuccessModal();
+    }
+});
+
+// Prevent modal from closing when clicking inside
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.success-modal') && !e.target.classList.contains('success-modal-overlay')) {
+        e.stopPropagation();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('successModal');
+    if (modal && modal.classList.contains('show')) {
+        if (e.key === 'Escape') {
+            closeSuccessModal();
+        } else if (e.key === 'Enter') {
+            // Go to trips list
+            window.location.href = 'trips.php';
+        }
+    }
+});
+
+// Original form validation code
 (function(){
   function wrap(el){ return el.closest('.input-wrap') || el.parentElement; }
   function setInvalid(el, msg){

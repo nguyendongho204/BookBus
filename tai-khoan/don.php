@@ -664,7 +664,7 @@ body { background: var(--bb-bg); }
                         <i class="fa fa-user"></i>
                         Tên khách hàng
                     </div>
-                    <div class="detail-value"><?php echo htmlspecialchars($booking['ten_khach'] ?? $booking['user_name'] ?? 'Chưa cập nhật'); ?></div>
+                    <div class="detail-value"><?php echo htmlspecialchars($booking['ho_ten'] ?? $booking['user_name'] ?? 'Chưa cập nhật'); ?></div>
                 </div>
 
                 <div class="detail-item">
@@ -672,7 +672,7 @@ body { background: var(--bb-bg); }
                         <i class="fa fa-phone"></i>
                         Số điện thoại
                     </div>
-                    <div class="detail-value"><?php echo htmlspecialchars($booking['so_dien_thoai'] ?? 'Chưa cập nhật'); ?></div>
+                    <div class="detail-value"><?php echo htmlspecialchars($booking['sdt'] ?? 'Chưa cập nhật'); ?></div>
                 </div>
 
                 <div class="detail-item">
