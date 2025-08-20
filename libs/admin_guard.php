@@ -17,3 +17,4 @@ if (!array_key_exists('role', $user) || (int)$user['role'] !== 0) {
     header('Location: ' . APP_BASE . '/?show=forbidden');
     exit;
 }
+?>

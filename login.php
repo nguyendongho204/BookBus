@@ -3,21 +3,39 @@ session_start();
 
 // Kiểm tra nếu đã đăng nhập
 if (isset($_SESSION['user'])) {
-    if ((int)$_SESSION['user']['role'] === 1) {
-        header('Location: src/admin/index.php');
-    } else {
-        header('Location: src/index.php');
+    // Kiểm tra trạng thái tài khoản trước khi redirect
+    require_once "libs/db.php";
+    require_once "libs/check_account_status.php";
+    $account_status = checkAccountStatus();
+    
+    // Nếu tài khoản hoạt động bình thường thì mới redirect
+    if ($account_status === 'active') {
+        if ((int)$_SESSION['user']['role'] === 1) {
+            header('Location: src/admin/index.php');
+        } else {
+            header('Location: src/index.php');
+        }
+        exit;
     }
-    exit;
+    // Nếu tài khoản bị khóa hoặc xóa, không redirect mà tiếp tục hiển thị trang login
 }
 
 // Lấy thông báo lỗi
 $login_error = $_SESSION['login_error'] ?? '';
 $account_locked = $_SESSION['account_locked'] ?? null;
-$show_locked_modal = isset($_GET['locked']) && $account_locked;
+$show_locked_modal = isset($_GET['locked']) && $_GET['locked'] == 1 && $account_locked;
 
-// Xóa session errors
-unset($_SESSION['login_error'], $_SESSION['account_locked']);
+// Xử lý các tham số URL
+$error_param = $_GET['error'] ?? '';
+if ($error_param === 'account_locked') {
+    $login_error = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
+    $show_locked_modal = true;
+} elseif ($error_param === 'account_deleted') {
+    $login_error = 'Tài khoản không tồn tại hoặc đã bị xóa.';
+}
+
+// Xóa session errors sau khi đã lấy
+unset($_SESSION['login_error']);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -326,7 +344,17 @@ unset($_SESSION['login_error'], $_SESSION['account_locked']);
     </div>
 
     <!-- Modal Tài khoản bị khóa -->
-    <?php if ($show_locked_modal && $account_locked): ?>
+    <?php 
+    // Hiển thị modal nếu tài khoản bị khóa hoặc tham số URL yêu cầu
+    $show_modal = $show_locked_modal || 
+                 (isset($_GET['locked']) && $_GET['locked'] == 1) || 
+                 (isset($_GET['error']) && $_GET['error'] == 'account_locked');
+                 
+    // Lấy thông tin tài khoản bị khóa từ session
+    $account_info = $_SESSION['account_locked'] ?? $_SESSION['locked_account_info'] ?? null;
+    
+    if ($show_modal && $account_info): 
+    ?>
     <div class="locked-modal-overlay" id="lockedModal">
         <div class="locked-modal">
             <div class="modal-header-locked">
@@ -343,13 +371,13 @@ unset($_SESSION['login_error'], $_SESSION['account_locked']);
                         <span class="info-label">
                             <i class="fas fa-user"></i> Tên tài khoản
                         </span>
-                        <span class="info-value"><?= htmlspecialchars($account_locked['name']) ?></span>
+                        <span class="info-value"><?= htmlspecialchars($account_info['name']) ?></span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">
                             <i class="fas fa-envelope"></i> Email
                         </span>
-                        <span class="info-value"><?= htmlspecialchars($account_locked['email']) ?></span>
+                        <span class="info-value"><?= htmlspecialchars($account_info['email']) ?></span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">
@@ -381,16 +409,26 @@ unset($_SESSION['login_error'], $_SESSION['account_locked']);
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    <?php 
+    // Xóa session sau khi hiển thị
+    unset($_SESSION['show_locked_modal'], $_SESSION['account_locked'], $_SESSION['locked_account_info']);
+    endif; 
+    ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
     // Show locked modal if needed
-    <?php if ($show_locked_modal): ?>
+    <?php if ($show_modal): ?>
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
-            document.getElementById('lockedModal').classList.add('show');
+            const modal = document.getElementById('lockedModal');
+            if (modal) {
+                modal.classList.add('show');
+                
+                // Log để debug
+                console.log('🔒 Showing locked account modal');
+            }
         }, 100);
     });
     <?php endif; ?>
@@ -399,6 +437,7 @@ unset($_SESSION['login_error'], $_SESSION['account_locked']);
         const modal = document.getElementById('lockedModal');
         if (modal) {
             modal.classList.remove('show');
+            
             // Clean URL
             if (window.history.replaceState) {
                 window.history.replaceState(null, null, 'login.php');

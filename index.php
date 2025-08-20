@@ -5,30 +5,42 @@
 //Session
 	session_start();
 
-// ===== THÊM PHẦN NÀY - KIỂM TRA TRẠNG THÁI TÀI KHOẢN =====
+// ===== KIỂM TRA TRẠNG THÁI TÀI KHOẢN - PHIÊN BẢN CẬP NHẬT =====
 // Kiểm tra trạng thái tài khoản nếu đã đăng nhập
-if (isset($_SESSION['user'])) {
+if (isset($_SESSION['user']) && isset($_SESSION['user']['id'])) {
+    // Đảm bảo db.php đã được include
+    if (!isset($pdo)) {
+        require_once "libs/db.php";
+    }
+    
     require_once "libs/check_account_status.php";
     $account_status = checkAccountStatus();
     
     // Log để debug
-    error_log("Account status check: " . $account_status);
+    error_log("Account status check in index.php: " . $account_status);
     
-    // ✅ XỬ LÝ KHI TÀI KHOẢN BỊ KHÓA
+    // Xử lý khi tài khoản bị khóa
     if ($account_status === 'locked') {
-        // checkAccountStatus đã unset $_SESSION['user'] và set modal session
-        // Reload trang để hiển thị modal
-        header('Location: index.php?account_locked=1');
+        // checkAccountStatus đã unset $_SESSION['user'] và set các thông tin cần thiết
+        $_SESSION['show_locked_modal'] = true;
+        $_SESSION['login_error'] = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
+        
+        // QUAN TRỌNG: Redirect về trang login.php để ngăn truy cập
+        header('Location: login.php?error=account_locked');
         exit;
     }
     
+    // Xử lý khi tài khoản bị xóa
     if ($account_status === 'deleted') {
-        // Nếu tài khoản bị xóa, redirect về login
-        header('Location: login.php?account_deleted=1');
+        // checkAccountStatus đã unset $_SESSION['user']
+        $_SESSION['login_error'] = 'Tài khoản không tồn tại.';
+        header('Location: login.php?error=account_deleted');
         exit;
     }
+    
+    // Trường hợp active - tiếp tục bình thường
 }
-// ===== KẾT THÚC PHẦN THÊM =====
+// ===== KẾT THÚC PHẦN KIỂM TRA =====
 
 //Site Redirect	
 	$ctrl="ctrls/c_index.php";
@@ -69,7 +81,7 @@ if (isset($_SESSION['user'])) {
 
 // ===== THÊM PHẦN NÀY - INCLUDE MODAL =====
 // Include modal thông báo tài khoản bị khóa (sẽ chỉ hiển thị nếu cần)
-if (isset($_SESSION['user'])) {
+if (file_exists("includes/locked_account_modal.php")) {
     include "includes/locked_account_modal.php";
 }
 // ===== KẾT THÚC PHẦN THÊM =====
@@ -83,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const bookingSuccess = urlParams.get('booking_success');
     const bookingFailed = urlParams.get('booking_failed');
+    const accountLocked = urlParams.get('account_locked');
     
     if (bookingSuccess === '1') {
         console.log('✅ Showing success modal...');
@@ -90,6 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (bookingFailed === '1') {
         console.log('❌ Showing failed modal...');
         handleBookingFailed();
+    } else if (accountLocked === '1') {
+        console.log('🔒 Account locked, modal should show automatically...');
+        // Modal hiển thị tự động từ locked_account_modal.php
     }
 });
 

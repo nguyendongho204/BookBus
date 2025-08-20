@@ -197,4 +197,5 @@ require_once __DIR__ . '/libs/check_account_status.php';
 <?php include_once('footer.php'); ?>
 
 </body>
+
 </html>

@@ -1,52 +1,61 @@
 <?php
-// libs/check_account_status.php - Kiểm tra tài khoản bị khóa
-if (!function_exists('checkAccountStatus')) {
-    function checkAccountStatus() {
-        // Nếu chưa đăng nhập thì bỏ qua
-        if (!isset($_SESSION['user'])) {
-            return 'not_logged_in';
-        }
-
-        // Include database connection
+function checkAccountStatus() {
+    // Kiểm tra session user có tồn tại không
+    if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
+        return 'not_logged_in';
+    }
+    
+    global $pdo;
+    
+    if (!isset($pdo)) {
         require_once __DIR__ . '/db.php';
-
-        $userId = $_SESSION['user']['id'];
+    }
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, name, email, 
+                   COALESCE(status, 1) as status, 
+                   deleted_at 
+            FROM daily_dangky 
+            WHERE id = ?
+        ");
+        $stmt->execute([$_SESSION['user']['id']]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        try {
-            // Kiểm tra trạng thái tài khoản hiện tại
-            $stmt = $pdo->prepare("
-                SELECT COALESCE(status, 1) as status, deleted_at, name, email 
-                FROM daily_dangky 
-                WHERE id = ?
-            ");
-            $stmt->execute([$userId]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Nếu không tìm thấy user hoặc bị xóa
-            if (!$user || !empty($user['deleted_at'])) {
-                session_destroy();
-                return 'deleted';
-            }
-
-            // Nếu tài khoản bị khóa (status = 0)
-            if ((int)$user['status'] === 0) {
-                $_SESSION['show_locked_modal'] = true;
-                $_SESSION['locked_account_info'] = [
-                    'name' => $user['name'],
-                    'email' => $user['email']
-                ];
-                
-                // Thêm dòng này để đăng xuất user
-                unset($_SESSION['user']);
-                
-                return 'locked';
-            }
-
-        } catch (PDOException $e) {
-            error_log("Lỗi kiểm tra trạng thái tài khoản: " . $e->getMessage());
+        if (!$user) {
+            // Tài khoản không tồn tại
+            unset($_SESSION['user']);
+            $_SESSION['login_error'] = 'Tài khoản không tồn tại.';
+            return 'not_found';
+        }
+        
+        if ($user['deleted_at'] !== null) {
+            // Tài khoản bị xóa
+            unset($_SESSION['user']);
+            $_SESSION['login_error'] = 'Tài khoản đã bị xóa.';
+            return 'deleted';
+        }
+        
+        if ((int)$user['status'] !== 1) {
+            // Tài khoản bị khóa
+            $_SESSION['locked_account_info'] = [
+                'name' => $user['name'],
+                'email' => $user['email']
+            ];
+            
+            unset($_SESSION['user']); // QUAN TRỌNG: Xóa session user
+            $_SESSION['login_error'] = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
+            
+            error_log("🔒 FORCE LOGOUT: User {$user['email']} (ID: {$user['id']}) account is locked.");
+            
+            return 'locked';
         }
         
         return 'active';
+        
+    } catch (Exception $e) {
+        error_log('checkAccountStatus error: ' . $e->getMessage());
+        return 'error';
     }
 }
 ?>

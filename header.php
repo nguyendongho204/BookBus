@@ -1,5 +1,5 @@
 <?php require_once __DIR__ . '/includes/session_bootstrap.php';
-require_once __DIR__ . '/config.php'; ?>
+ ?>
 
 <title>Đặt vé xe BookBus – Các chuyến đi nội tỉnh Cần Thơ</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
