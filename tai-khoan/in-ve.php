@@ -45,15 +45,27 @@ try {
         }
         
         // Lấy thông tin user
-        $user_info = null;
-        if (!empty($booking['user_id'])) {
-            $sql3 = "SELECT name, email FROM users WHERE id = :user_id";
-            $stmt3 = $pdo->prepare($sql3);
-            $stmt3->bindParam(':user_id', $booking['user_id'], PDO::PARAM_INT);
-            $stmt3->execute();
-            $user_info = $stmt3->fetch(PDO::FETCH_ASSOC);
+        // Lấy thông tin user một cách thông minh
+        $user_info = [];
+
+        // Ưu tiên 1: Thông tin từ đặt vé (nếu có)
+        if (!empty($booking['ten_khach'])) {
+            $user_info['name'] = $booking['ten_khach'];
         }
-        
+
+        if (!empty($booking['email'])) {
+            $user_info['email'] = $booking['email'];
+        }
+
+        // Ưu tiên 2: Thông tin từ session user
+        if (empty($user_info['name'])) {
+            $user_info['name'] = $user['name'] ?? $user['username'] ?? 'Khách hàng';
+        }
+
+        if (empty($user_info['email'])) {
+            $user_info['email'] = $user['email'] ?? 'customer@gmail.com';
+        }
+                            
         // Merge dữ liệu
         if ($trip) {
             $booking = array_merge($booking, $trip);
@@ -611,7 +623,7 @@ $status = strtolower($booking['payment_status'] ?? '');
             <i class="fa fa-print"></i>
             In vé
         </button>
-        <a href="/src/tai-khoan/don.php?id=<?php echo $booking['id']; ?>" class="print-btn secondary">
+        <a href="javascript:window.close()">
             <i class="fa fa-arrow-left"></i>
             Quay lại
         </a>
@@ -796,7 +808,7 @@ $status = strtolower($booking['payment_status'] ?? '');
                 Vui lòng xuất trình vé khi lên xe
             </div>
             <div class="contact-info">
-                Hotline: 1900-xxx-xxx | Website: bookbus.com
+                Hotline: 1900-909-090 | Website: bookbus.com
             </div>
         </div>
     </div>

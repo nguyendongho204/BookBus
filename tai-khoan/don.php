@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-
+ob_start();
 require_once __DIR__ . '/_auth.php';
 require_once __DIR__ . '/../header.php';
 
@@ -46,20 +46,25 @@ try {
             $trip = $stmt2->fetch(PDO::FETCH_ASSOC);
         }
         
-        // Bước 3: Lấy thông tin user
-        $user_info = null;
-        if (!empty($booking['user_id'])) {
-            $sql3 = "SELECT name, email FROM users WHERE id = :user_id";
-            $stmt3 = $pdo->prepare($sql3);
-            $stmt3->bindParam(':user_id', $booking['user_id'], PDO::PARAM_INT);
-            $stmt3->execute();
-            $user_info = $stmt3->fetch(PDO::FETCH_ASSOC);
-        }
+          // Bước 3: Lấy thông tin user (bỏ qua vì table users không tồn tại)
+          $user_info = null;
+          // Sử dụng thông tin từ session thay vì query database
+          if (!empty($user['name']) || !empty($user['email'])) {
+              $user_info = [
+                  'name' => $user['name'] ?? $user['username'] ?? 'Lâm Hiếu Huy',
+                  'email' => $user['email'] ?? 'chy@gmail.com'
+              ];
+          }
+        // Lưu lại ID gốc trước khi merge
         
-        // Bước 4: Merge dữ liệu an toàn
-        if ($trip) {
-            $booking = array_merge($booking, $trip);
-        } else {
+              $originalBookingId = $booking['id'];
+
+              // Bước 4: Merge dữ liệu an toàn
+              if ($trip) {
+                  $booking = array_merge($booking, $trip);
+                  // Đảm bảo ID vé không bị ghi đè
+                  $booking['id'] = $originalBookingId;
+              }else {
             // Sử dụng giá trị mặc định khi không có thông tin chuyến xe
             $booking['ten_nhaxe'] = $booking['ten_nhaxe'] ?? 'BookBus';
             $booking['diem_di'] = $booking['diem_di'] ?? 'Cần Thơ';
@@ -725,14 +730,13 @@ body { background: var(--bb-bg); }
                 <?php endif; ?>
             </div>
         </div>
-
-        <!-- ACTIONS -->
+              <!-- ACTIONS -->
         <div class="actions-section">
             <a href="javascript:window.print()" class="action-btn btn-primary">
                 <i class="fa fa-print"></i>
                 In vé này
             </a>
-            <a href="/src/tai-khoan/in-ve.php?id=<?php echo $booking['id']; ?>" class="action-btn btn-secondary" target="_blank">
+            <a href="/src/tai-khoan/in-ve.php?id=<?php echo $bookingId; ?>" class="action-btn btn-secondary" target="_blank">
                 <i class="fa fa-external-link"></i>
                 Xem bản in
             </a>
