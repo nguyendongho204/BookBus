@@ -1,0 +1,85 @@
+<?php
+// src/timvexenhanh.php
+// Danh sách tuyến dùng riêng cho form này
+$LOCATIONS = [
+  "Cần Thơ","Phong Điền","Ô Môn","Vĩnh Long","Kinh Cùng",
+  "Cái Tắc","Thốt Nốt","Cờ Đỏ","Vĩnh Thạnh","Bình Tân"
+];
+?>
+<style>
+/* Form gọn, nút cạnh ô Số vé */
+.qs3-card{max-width:980px;margin:0 auto;background:rgba(255,255,255,.92);box-shadow:0 10px 30px rgba(0,0,0,.15);border-radius:14px;padding:18px 18px 20px}
+.qs3-title{margin:2px 0 14px;text-align:center;font-weight:700;font-size:20px}
+.qs3-grid{display:grid;grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) minmax(160px,1fr) minmax(110px,.7fr) auto;gap:10px;align-items:end}
+.qs3-field label{display:block;text-align:center;font-weight:600;margin-bottom:6px;min-height:20px}
+.qs3-field select,.qs3-field input[type="date"],.qs3-field input[type="number"]{width:100%;height:40px;padding:8px 10px;border:1px solid #d7e1ea;border-radius:10px;outline:none}
+.qs3-btn{height:40px;padding:0 18px;border-radius:10px;border:none;font-weight:700;background:#ff5a2c;color:#fff;cursor:pointer;white-space:nowrap}
+.qs3-btn:active{transform:translateY(1px)}
+@media (max-width:768px){.qs3-grid{grid-template-columns:1fr 1fr}.qs3-btn{width:100%}}
+</style>
+
+<div class="qs3-card">
+  <div class="qs3-title">Tìm vé xe nhanh</div>
+  <form action="timkiemchuyenxe.php" method="get" class="qs3-grid" novalidate>
+    <div class="qs3-field">
+      <label for="qs3_from">Điểm đi</label>
+      <select id="qs3_from" name="diem_di" required>
+        <option value="" disabled selected hidden>Chọn điểm đi</option>
+        <?php foreach ($LOCATIONS as $l): ?>
+          <option value="<?=htmlspecialchars($l)?>"><?=htmlspecialchars($l)?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <div class="qs3-field">
+      <label for="qs3_to">Điểm đến</label>
+      <select id="qs3_to" name="diem_den" required>
+        <option value="" disabled selected hidden>Chọn điểm đến</option>
+        <?php foreach ($LOCATIONS as $l): ?>
+          <option value="<?=htmlspecialchars($l)?>"><?=htmlspecialchars($l)?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <div class="qs3-field">
+      <label for="qs3_date">Ngày khởi hành</label>
+      <input id="qs3_date" type="date" name="ngay_khoi_hanh" required />
+    </div>
+
+    <div class="qs3-field">
+      <label for="qs3_qty">Số vé</label>
+      <input id="qs3_qty" type="number" name="so_khach" min="1" value="1" />
+    </div>
+
+    <button class="qs3-btn" type="submit">Tìm Kiếm</button>
+  </form>
+</div>
+
+<script>
+// Không cho chọn trùng điểm đi/đến
+const fromSel = document.getElementById('qs3_from');
+const toSel   = document.getElementById('qs3_to');
+
+function syncSelects() {
+  const fromVal = fromSel.value;
+  const toVal   = toSel.value;
+
+  // Reset disable trước
+  [...toSel.options].forEach(opt => opt.disabled = false);
+  [...fromSel.options].forEach(opt => opt.disabled = false);
+
+  if (fromVal) {
+    [...toSel.options].forEach(opt => {
+      if (opt.value === fromVal) opt.disabled = true;
+    });
+  }
+  if (toVal) {
+    [...fromSel.options].forEach(opt => {
+      if (opt.value === toVal) opt.disabled = true;
+    });
+  }
+}
+
+fromSel.addEventListener('change', syncSelects);
+toSel.addEventListener('change', syncSelects);
+</script>

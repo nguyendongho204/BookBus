@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /src/BookBus/
+
+    RewriteRule ^BookBus$ index.php?ctrl=TrangChu [L]
+    RewriteRule ^BookBus/DatVe$ index.php?ctrl=DatVe [L]
+    RewriteRule ^BookBus/HuongDan$ index.php?ctrl=HuongDan [L]
+    RewriteRule ^BookBus/DangKy$ index.php?ctrl=DangKy [L]
+    RewriteRule ^BookBus/LienHe$ index.php?ctrl=LienHe [L]
+    RewriteRule ^BookBus/OTP$ index.php?ctrl=OtpForm [L]
+
+</IfModule>

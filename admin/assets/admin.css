@@ -1,0 +1,109 @@
+:root{--brand:#ff5a2c;--brand-ink:#1f2937;--muted:#6b7280;--bg:#f7f7fb;--card:#fff;--ring:rgba(255,90,44,.35)}
+.admin-body{background:var(--bg);color:var(--brand-ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.admin-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #eee;padding:10px 16px}
+.brand-link{text-decoration:none;color:var(--brand-ink);font-weight:800}
+.brand .badge{background:var(--brand);color:#fff;font-size:12px;padding:3px 6px;border-radius:999px;margin-left:6px}
+.admin-nav{display:flex;gap:8px}
+.admin-nav .nav-link{padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--brand-ink)}
+.admin-nav .nav-link.active{background:var(--brand);color:#fff}
+.admin-main{padding:24px 16px}
+.kpi-grid{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi{padding:16px;background:var(--card);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,.06);border:1px solid #eee}
+.kpi .label{color:var(--muted)}.kpi .value{font-weight:700;font-size:20px}
+.cardx{background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06);border:1px solid #eee;padding:18px}
+.form-card{background:var(--card);border-radius:16px;padding:24px;border:1px solid #eee;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.form-control,.form-select{border-radius:12px;border:1px solid #e5e7eb;padding:10px 12px}
+.form-control:focus,.form-select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--ring)}
+.btn-brand{background:var(--brand);color:#fff;border:none;border-radius:999px;padding:10px 18px;font-weight:600}
+.btn-ghost{background:#f3f4f6;color:#111827;border:none;border-radius:12px;padding:10px 14px}
+.badge-status{padding:5px 9px;border-radius:999px;font-size:12px}
+.badge-success{background:#e7f9ee;color:#0f8a3a}
+.badge-pending{background:#fff4e5;color:#915930}
+.badge-failed{background:#fdecec;color:#b91c1c}
+@media (max-width:992px){.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:576px){.kpi-grid{grid-template-columns:1fr}}
+
+/* Prefer tighter horizontal spacing for the 'Tìm vé nhanh' form */
+.search-fast, .search-quick, .search-box, .booking-quick, .booking-form, .home-search, .ticket-search, .qs3-grid, .qs3-card {
+  /* Nothing forced here; we just allow them to size naturally */
+}
+
+/* Reduce inline gaps between immediate children inputs/selects within likely form rows */
+.search-fast form > *, .search-quick form > *, .booking-form form > *, .home-search form > *,
+.ticket-search form > *, .qs3-grid > * {
+  margin-right: 6px;
+}
+.search-fast form > *:last-child, .search-quick form > *:last-child, .booking-form form > *:last-child,
+.home-search form > *:last-child, .ticket-search form > *:last-child, .qs3-grid > *:last-child {
+  margin-right: 0;
+}
+
+/* If grid layout is used, tighten the column gap */
+.search-fast form, .search-quick form, .booking-form form, .home-search form, .ticket-search form, .qs3-grid {
+  column-gap: 6px !important;
+  grid-column-gap: 6px !important;
+}
+
+/* Slightly reduce min-width on the first two selects (Điểm đi/Điểm đến) */
+.search-fast select, .search-quick select, .home-search select, .ticket-search select, .booking-form select {
+  min-width: 140px;
+}
+
+/* Optional helper class: add 'tight-gap' to the form container if you want even closer spacing */
+.tight-gap { column-gap: 4px !important; }
+
+/* Booking Success Modal Styles */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.modal-header.bg-success {
+    border-radius: 15px 15px 0 0;
+}
+
+.success-icon {
+    animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.booking-details .info-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.booking-details .info-item:last-child {
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.modal-footer .btn {
+    margin: 0 5px;
+    border-radius: 8px;
+}
+
+/* Booking Failed Modal */
+.booking-failed-modal .modal-header {
+    background-color: #dc3545 !important;
+}
+
+.failed-icon {
+    color: #dc3545;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}

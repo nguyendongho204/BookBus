@@ -1,0 +1,42 @@
+
+/* account.css — scoped styles for user account area */
+:root{
+  --acc-radius:16px;
+  --acc-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+.account-wrap{
+  display:grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+}
+@media (max-width: 992px){
+  .account-wrap{ grid-template-columns: 1fr; }
+}
+.acc-sidebar{
+  background:#fff;border-radius:var(--acc-radius);box-shadow:var(--acc-shadow);
+  overflow:hidden;
+}
+.acc-sidebar .list-group-item{
+  border:0;padding:14px 18px;font-weight:600;
+}
+.acc-sidebar .list-group-item.active{
+  background:linear-gradient(90deg,#0d6efd, #00b4d8);
+  color:#fff;
+}
+.acc-card{
+  border:0;border-radius:var(--acc-radius);box-shadow:var(--acc-shadow);
+}
+.form-floating>label{color:#6c757d}
+.badge-soft{
+  background:#eef2ff;color:#1d4ed8;border:1px solid #dbeafe;
+}
+.table thead th{
+  background:#f8fafc; font-weight:700; border-bottom:1px solid #e9ecef;
+}
+.table td, .table th{ vertical-align: middle; }
+.order-status.badge{font-weight:600;padding:.5em .75em}
+.order-status.paid{background:#e8f7ee;color:#157347}
+.order-status.pending{background:#fff7e6;color:#b35c00}
+.order-status.failed{background:#fde8e8;color:#b42318}
+/* tiny helpers */
+.text-muted-2{color:#6b7280}
