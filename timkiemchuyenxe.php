@@ -1,10 +1,7 @@
-
-
-
 <?php
-
+session_start();
 include __DIR__ . '/libs/db_chuyenxe.php';
-
+$isLoggedIn = !empty($_SESSION['user']['id']);
 
 $diem_di = $_GET['diem_di'] ?? '';
 $diem_den = $_GET['diem_den'] ?? '';
@@ -141,6 +138,101 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="includes/js/jquery-1.12.4.min.js"></script>
 <script src="includes/js/script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kiểm tra trạng thái đăng nhập từ PHP
+    const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+    
+    // Tìm tất cả nút "Đặt Ngay"
+    const bookingButtons = document.querySelectorAll('.btn-book, a[href*="checkout"]');
+    
+    bookingButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            if (!isLoggedIn) {
+                e.preventDefault(); // Ngăn chuyển hướng
+                showLoginRequiredModal();
+                return false;
+            }
+            // Nếu đã đăng nhập, tiếp tục bình thường
+        });
+    });
+});
+
+function showLoginRequiredModal() {
+    const modalHTML = `
+        <div id="loginRequiredModal" class="modal" style="display:block; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+            <div style="background:#fff; width:420px; margin:8% auto; padding:30px; border-radius:15px; text-align:center; position:relative; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <span onclick="closeLoginRequiredModal()" style="position:absolute; top:15px; right:20px; font-size:28px; cursor:pointer; color:#999; font-weight:bold;">&times;</span>
+                
+                <div style="margin-bottom:25px;">
+                    <i class="fa fa-exclamation-triangle" style="font-size:60px; color:#ff9800; margin-bottom:20px; animation: pulse 2s infinite;"></i>
+                    <h3 style="color:#333; margin:15px 0; font-size:24px;">Yêu cầu đăng nhập</h3>
+                    <p style="color:#666; line-height:1.6; font-size:16px;">
+                        Vui lòng đăng nhập để tiếp tục đặt vé.<br>
+                        <span style="color:#28a745; font-weight:500;">Nếu chưa có tài khoản, vui lòng đăng ký.</span>
+                    </p>
+                </div>
+                
+                <div style="display:flex; gap:15px; justify-content:center; margin-top:20px;">
+                    <button onclick="openLoginFromModal()" style="padding:14px 28px; background:#0d6efd; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:16px; transition: all 0.3s;">
+                        <i class="fa fa-sign-in"></i> Đăng nhập
+                    </button>
+                    <button onclick="openRegisterFromModal()" style="padding:14px 28px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:16px; transition: all 0.3s;">
+                        <i class="fa fa-user-plus"></i> Đăng ký
+                    </button>
+                </div>
+                
+                <div style="margin-top:20px; padding-top:15px; border-top:1px solid #eee;">
+                    <small style="color:#999;">
+                        <i class="fa fa-info-circle"></i> Sẽ tự động chuyển về trang chủ sau 3 giây
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+            
+            #loginRequiredModal button:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+        </style>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Tự động chuyển về trang chủ sau 3 giây
+    setTimeout(function() {
+        closeLoginRequiredModal();
+        window.location.href = '/src/trangchu.php?show=login';
+    }, 3000);
+}
+
+function closeLoginRequiredModal() {
+    const modal = document.getElementById('loginRequiredModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function openLoginFromModal() {
+    closeLoginRequiredModal();
+    // Chuyển về trang chủ và mở login modal
+    window.location.href = '/src/trangchu.php?show=login';
+}
+
+function openRegisterFromModal() {
+    closeLoginRequiredModal();
+    // Chuyển về trang chủ và mở register modal
+    window.location.href = '/src/trangchu.php?show=register';
+}
+</script>
 </body>
 </html>
 
