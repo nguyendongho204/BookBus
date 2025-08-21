@@ -1,472 +1,318 @@
 <?php
 session_start();
+$errorMsg = '';
+$showLockedModal = false;
+$locked_name = $_SESSION['locked_account_info']['name'] ?? 'User';
+$locked_email = $_SESSION['locked_account_info']['email'] ?? '';
 
-// Kiểm tra nếu đã đăng nhập
-if (isset($_SESSION['user'])) {
-    // Kiểm tra trạng thái tài khoản trước khi redirect
-    require_once "libs/db.php";
-    require_once "libs/check_account_status.php";
-    $account_status = checkAccountStatus();
-    
-    // Nếu tài khoản hoạt động bình thường thì mới redirect
-    if ($account_status === 'active') {
-        if ((int)$_SESSION['user']['role'] === 1) {
-            header('Location: src/admin/index.php');
-        } else {
-            header('Location: src/index.php');
-        }
-        exit;
+if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
+    header('Location: trangchu.php');
+    exit;
+}
+
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'account_locked':
+            $errorMsg = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ mở khóa.';
+            $showLockedModal = true;
+            break;
+        case 'wrongpass':
+            $errorMsg = 'Email hoặc mật khẩu không đúng.';
+            break;
+        case 'nouser':
+            $errorMsg = 'Không tìm thấy tài khoản. Vui lòng kiểm tra lại.';
+            break;
+        case 'blank':
+            $errorMsg = 'Vui lòng nhập đầy đủ thông tin.';
+            break;
+        case 'account_deleted':
+            $errorMsg = 'Tài khoản đã bị xoá. Vui lòng liên hệ quản trị viên.';
+            break;
+        default:
+            $errorMsg = 'Đăng nhập thất bại. Vui lòng thử lại.';
+            break;
     }
-    // Nếu tài khoản bị khóa hoặc xóa, không redirect mà tiếp tục hiển thị trang login
 }
 
-// Lấy thông báo lỗi
-$login_error = $_SESSION['login_error'] ?? '';
-$account_locked = $_SESSION['account_locked'] ?? null;
-$show_locked_modal = isset($_GET['locked']) && $_GET['locked'] == 1 && $account_locked;
-
-// Xử lý các tham số URL
-$error_param = $_GET['error'] ?? '';
-if ($error_param === 'account_locked') {
-    $login_error = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
-    $show_locked_modal = true;
-} elseif ($error_param === 'account_deleted') {
-    $login_error = 'Tài khoản không tồn tại hoặc đã bị xóa.';
+if ($showLockedModal && isset($_SESSION['locked_account_info'])) {
+    unset($_SESSION['locked_account_info']);
 }
 
-// Xóa session errors sau khi đã lấy
-unset($_SESSION['login_error']);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <title>Đăng nhập BookBus</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - BookBus</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .login-container {
-            max-width: 400px;
+        .login-center {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .login-box {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,123,94,.15), 0 1.5px 12px rgba(0,0,0,.04);
+            padding: 48px 40px 32px 40px;
+            max-width: 390px;
             width: 100%;
-            margin: 0 auto;
-            padding: 20px;
+            position: relative;
+            animation: fadein .6s;
         }
-
-        .login-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        @keyframes fadein {
+            from { opacity: 0; transform: scale(.95);}
+            to { opacity: 1; transform: scale(1);}
         }
-
-        .brand-logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .brand-logo h1 {
-            color: #ff5722;
-            font-weight: 800;
-            font-size: 32px;
+        .login-logo {
+            display: flex;
+            justify-content: center;
             margin-bottom: 8px;
         }
-
-        .brand-logo p {
-            color: #666;
-            margin: 0;
+        .login-logo i {
+            font-size: 56px;
+            color: #00c6a7;
+            background: #e9f7f5;
+            border-radius: 50%;
+            padding: 12px;
+            box-shadow: 0 2px 6px rgba(0,123,94,.09);
         }
-
-        .form-group {
+        .login-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.65rem;
+            color: #007b5e;
+            margin-bottom: 7px;
+            letter-spacing: .5px;
+        }
+        .login-desc {
+            text-align: center;
+            color: #555;
+            font-size: 15px;
             margin-bottom: 20px;
         }
-
+        .alert-custom {
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 17px;
+            padding: 9px 14px;
+        }
         .form-label {
             font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: #222;
         }
-
         .form-control {
-            border: 2px solid #e2e8f0;
             border-radius: 8px;
-            padding: 12px 16px;
             font-size: 16px;
-            transition: all 0.3s ease;
+            background: #f5f7fa;
+            border: 1.5px solid #e9ecef;
+            transition: border-color .18s;
         }
-
         .form-control:focus {
-            border-color: #ff5722;
-            box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
+            border-color: #00c6a7;
+            box-shadow: 0 0 0 2px rgba(0,198,167,.14);
         }
-
-        .btn-login {
-            background: #ff5722;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 16px;
+        .btn-bookbus {
+            background-image: linear-gradient(90deg,#007bff 40%,#00c6a7 100%);
+            color: #fff;
             font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .btn-login:hover {
-            background: #e64a19;
-            transform: translateY(-1px);
-        }
-
-        .alert {
             border-radius: 8px;
+            font-size: 17px;
+            box-shadow: 0 2px 8px rgba(0,123,94,0.09);
+            transition: box-shadow .2s, background-image .2s;
             border: none;
-            padding: 12px 16px;
         }
-
-        /* Modal tài khoản bị khóa */
-        .locked-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease-out;
+        .btn-bookbus:hover {
+            box-shadow: 0 4px 20px rgba(0,123,94,.19);
+            background-image: linear-gradient(90deg,#00c6a7 40%,#007bff 100%);
         }
-
-        .locked-modal-overlay.show {
-            display: flex;
+        .btn-home {
+            background: #fff;
+            border: 1.5px solid #00c6a7;
+            color: #00c6a7;
+            font-weight: 500;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-right: 8px;
+            transition: background .2s, color .2s;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .btn-home:hover {
+            background: #00c6a7;
+            color: #fff;
         }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        .text-link {
+            color: #00c6a7;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
         }
-
-        .locked-modal {
-            background: white;
-            border-radius: 16px;
-            padding: 0;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            animation: slideInUp 0.4s ease-out;
-            overflow: hidden;
-            position: relative;
+        .text-link:hover {
+            text-decoration: underline;
+            color: #007bff;
         }
-
-        .modal-header-locked {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            padding: 24px;
+        .footer-link {
+            margin-top: 16px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
         }
-
-        .modal-header-locked::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            filter: blur(30px);
+        .modal-content {
+            border-radius: 18px;
         }
-
-        .locked-icon {
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            font-size: 24px;
-            position: relative;
-            z-index: 2;
+        .modal-header.bg-danger {
+            background: linear-gradient(90deg,#f44336 60%,#e57373 100%);
         }
-
-        .modal-title-locked {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .modal-subtitle-locked {
-            font-size: 14px;
-            opacity: 0.9;
-            position: relative;
-            z-index: 2;
-        }
-
-        .modal-body-locked {
-            padding: 24px;
-        }
-
-        .user-info {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            border-left: 4px solid #dc3545;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .info-label {
-            color: #6c757d;
+        .contact-form label {
             font-weight: 500;
         }
-
-        .info-value {
-            color: #212529;
-            font-weight: 600;
+        .contact-form .form-control {
+            font-size: 15px;
+            border-radius: 7px;
         }
-
-        .contact-info {
-            background: #e3f2fd;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .contact-info .text-primary {
-            color: #1976d2 !important;
-        }
-
-        .modal-btn-locked {
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s ease;
-        }
-
-        .modal-btn-locked:hover {
-            background: #5a6268;
-            transform: translateY(-1px);
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 480px) {
-            .locked-modal {
-                margin: 20px;
-                width: calc(100% - 40px);
-            }
+        .contact-form .btn {
+            border-radius: 7px;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="brand-logo">
-                <h1><i class="fas fa-bus"></i> BookBus</h1>
-                <p>Đăng nhập để tiếp tục</p>
+<div class="login-center">
+    <div class="login-box">
+        <div class="login-logo">
+            <i class="fa fa-bus"></i>
+        </div>
+        <div class="login-title">Đăng nhập <span style="color:#00c6a7;">BookBus</span></div>
+        <div class="login-desc">Đăng nhập để tiếp tục sử dụng dịch vụ</div>
+        <?php if ($errorMsg): ?>
+            <div class="alert alert-danger alert-custom" role="alert">
+                <?php echo htmlspecialchars($errorMsg); ?>
             </div>
-
-            <?php if ($login_error): ?>
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <?= htmlspecialchars($login_error) ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST" action="login_process.php">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" name="email" required 
-                           value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-control" name="password" required>
-                </div>
-
-                <button type="submit" class="btn-login">
-                    <i class="fas fa-sign-in-alt me-2"></i>
-                    Đăng nhập
+        <?php endif; ?>
+        <form method="POST" action="libs/xl_dangnhap.php">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email hoặc SĐT</label>
+                <input type="text" class="form-control" id="email" name="identity" placeholder="Nhập email hoặc số điện thoại" autocomplete="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="matkhau" class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" id="matkhau" name="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
+            </div>
+            <div class="d-grid mb-2">
+                <button type="submit" class="btn btn-bookbus">Đăng nhập</button>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <button type="button" class="btn btn-home" onclick="window.location.href='trangchu.php'">
+                    <i class="fa fa-home"></i> Về trang chủ
                 </button>
-            </form>
+                <span class="text-link" id="showContactBtn"><i class="fa fa-envelope"></i> Liên hệ quản trị viên</span>
+            </div>
+        </form>
+    </div>
+</div>
 
-            <div class="text-center mt-3">
-                <a href="src/tai-khoan/index.php" class="text-decoration-none">
-                    Chưa có tài khoản? Đăng ký ngay
-                </a>
+<!-- Modal liên hệ quản trị viên -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content contact-form">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="contactModalLabel"><i class="fa fa-envelope me-2"></i>Liên hệ quản trị viên</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <form id="contactForm">
+        <div class="modal-body">
+          <label for="contactName">Tên của bạn</label>
+          <input type="text" class="form-control mb-2" id="contactName" name="contactName" placeholder="Nhập tên của bạn" required>
+          <label for="contactEmail">Email liên hệ</label>
+          <input type="email" class="form-control mb-2" id="contactEmail" name="contactEmail" placeholder="Nhập email" required>
+          <label for="contactMessage">Nội dung</label>
+          <textarea class="form-control mb-2" id="contactMessage" name="contactMessage" rows="3" placeholder="Bạn cần hỗ trợ gì?" required></textarea>
+          <div id="contactAlert" class="alert alert-success d-none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-bookbus"><i class="fa fa-paper-plane"></i> Gửi liên hệ</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<?php if ($showLockedModal): ?>
+<!-- Modal cảnh báo tài khoản bị khóa -->
+<div class="modal fade" id="lockedAccountModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="lockedAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="lockedAccountModalLabel">
+                    <i class="fa fa-lock me-2"></i> Tài khoản bị khóa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fa fa-user-lock fa-4x text-danger mb-2"></i>
+                    <h4 class="fw-bold">Tài khoản của bạn đã bị khóa</h4>
+                </div>
+                <div class="alert alert-warning">
+                    <p class="mb-1"><strong>Tên tài khoản:</strong> <?php echo htmlspecialchars($locked_name); ?></p>
+                    <?php if (!empty($locked_email)): ?>
+                    <p class="mb-1"><strong>Email:</strong> <?php echo htmlspecialchars($locked_email); ?></p>
+                    <?php endif; ?>
+                </div>
+                <p>Tài khoản của bạn đã bị khóa vì lý do bảo mật hoặc vi phạm điều khoản sử dụng.</p>
+                <p>Vui lòng liên hệ với quản trị viên để biết thêm chi tiết và mở khóa tài khoản.</p>
+                <button type="button" class="btn btn-bookbus mt-2" id="modalContactBtn">
+                    <i class="fa fa-envelope"></i> Liên hệ quản trị viên
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
-
-    <!-- Modal Tài khoản bị khóa -->
-    <?php 
-    // Hiển thị modal nếu tài khoản bị khóa hoặc tham số URL yêu cầu
-    $show_modal = $show_locked_modal || 
-                 (isset($_GET['locked']) && $_GET['locked'] == 1) || 
-                 (isset($_GET['error']) && $_GET['error'] == 'account_locked');
-                 
-    // Lấy thông tin tài khoản bị khóa từ session
-    $account_info = $_SESSION['account_locked'] ?? $_SESSION['locked_account_info'] ?? null;
-    
-    if ($show_modal && $account_info): 
-    ?>
-    <div class="locked-modal-overlay" id="lockedModal">
-        <div class="locked-modal">
-            <div class="modal-header-locked">
-                <div class="locked-icon">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <div class="modal-title-locked">Tài khoản bị khóa</div>
-                <div class="modal-subtitle-locked">Tài khoản của bạn đang bị tạm khóa</div>
-            </div>
-            
-            <div class="modal-body-locked">
-                <div class="user-info">
-                    <div class="info-row">
-                        <span class="info-label">
-                            <i class="fas fa-user"></i> Tên tài khoản
-                        </span>
-                        <span class="info-value"><?= htmlspecialchars($account_info['name']) ?></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </span>
-                        <span class="info-value"><?= htmlspecialchars($account_info['email']) ?></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">
-                            <i class="fas fa-clock"></i> Thời gian
-                        </span>
-                        <span class="info-value"><?= date('H:i - d/m/Y') ?></span>
-                    </div>
-                </div>
-
-                <div class="contact-info">
-                    <h6 class="text-primary mb-2">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Cần hỗ trợ?
-                    </h6>
-                    <p class="mb-2 small">
-                        Tài khoản của bạn đã bị khóa bởi quản trị viên. 
-                        Vui lòng liên hệ để được hỗ trợ mở khóa.
-                    </p>
-                    <div class="small">
-                        <strong>Email:</strong> support@bookbus.com<br>
-                        <strong>Hotline:</strong> 1900-1234
-                    </div>
-                </div>
-
-                <button class="modal-btn-locked" onclick="closeLockedModal()">
-                    <i class="fas fa-times me-2"></i>
-                    Đóng
-                </button>
-            </div>
-        </div>
-    </div>
-    <?php 
-    // Xóa session sau khi hiển thị
-    unset($_SESSION['show_locked_modal'], $_SESSION['account_locked'], $_SESSION['locked_account_info']);
-    endif; 
-    ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-    // Show locked modal if needed
-    <?php if ($show_modal): ?>
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            const modal = document.getElementById('lockedModal');
-            if (modal) {
-                modal.classList.add('show');
-                
-                // Log để debug
-                console.log('🔒 Showing locked account modal');
-            }
-        }, 100);
-    });
+</div>
+<?php endif; ?>
+<!-- Bootstrap JS -->
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hiện modal tài khoản bị khóa nếu có
+    <?php if ($showLockedModal): ?>
+    var lockedModal = new bootstrap.Modal(document.getElementById('lockedAccountModal'));
+    lockedModal.show();
+    document.getElementById('modalContactBtn').onclick = function() {
+        var contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+        contactModal.show();
+    };
     <?php endif; ?>
 
-    function closeLockedModal() {
-        const modal = document.getElementById('lockedModal');
-        if (modal) {
-            modal.classList.remove('show');
-            
-            // Clean URL
-            if (window.history.replaceState) {
-                window.history.replaceState(null, null, 'login.php');
-            }
-        }
-    }
+    // Hiện modal liên hệ khi bấm nút liên hệ
+    document.getElementById('showContactBtn').onclick = function() {
+        var contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+        contactModal.show();
+    };
 
-    // Close modal when clicking outside
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('locked-modal-overlay')) {
-            closeLockedModal();
-        }
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        const modal = document.getElementById('lockedModal');
-        if (modal && modal.classList.contains('show')) {
-            if (e.key === 'Escape') {
-                closeLockedModal();
-            }
-        }
-    });
-    </script>
-    <?php
-// Hiển thị modal tài khoản bị khóa nếu cần
-if (file_exists("includes/locked_account_modal.php")) {
-    include "includes/locked_account_modal.php";
-}
-?>
+    // Gửi form liên hệ (demo, không gửi thực tế)
+    document.getElementById('contactForm').onsubmit = function(e) {
+        e.preventDefault();
+        var alertBox = document.getElementById('contactAlert');
+        alertBox.textContent = "Gửi liên hệ thành công! Quản trị viên sẽ phản hồi qua email.";
+        alertBox.classList.remove('d-none');
+        setTimeout(function() {
+            var contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+            contactModal.hide();
+            alertBox.classList.add('d-none');
+            document.getElementById('contactForm').reset();
+        }, 2000);
+    };
+});
+</script>
 </body>
 </html>

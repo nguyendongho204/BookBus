@@ -1290,3 +1290,19 @@ body {
 #loginRequiredModal div[style*="margin:8%"] {
     animation: modalSlideIn 0.3s ease-out;
 }
+
+.tieude {
+  text-align: center; /* căn giữa tiêu đề */
+  font-size: 32px; /* chữ to */
+  font-weight: bold;
+  margin: 30px 0 20px;
+  color: red;
+}
+
+.step-title {
+  font-size: 20px; /* to vừa, nhỏ hơn tiêu đề chính */
+  font-weight: 600;
+  margin: 25px 0 10px;
+  line-height: 1.35;
+  color: #1d3d71;
+}

@@ -42,10 +42,11 @@ if (isset($pdo) && $pdo instanceof PDO) {
 
 // Trang chủ - SIMPLE PATH
 $home = '/src/trangchu.php';
+$loginPage = '/src/login.php';
 
 // Chỉ chấp nhận POST
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    header('Location: ' . $home . '?show=login');
+    header('Location: ' . $loginPage);
     exit;
 }
 
@@ -56,7 +57,7 @@ $password = (string)($_POST['password'] ?? '');
 error_log("LOGIN DEBUG - Identity: " . $identity);
 
 if ($identity === '' || $password === '') {
-    header('Location: ' . $home . '?show=login&login_err=blank');
+    header('Location: ' . $loginPage . '?error=blank');
     exit;
 }
 
@@ -220,7 +221,7 @@ if ($user) {
 }
 
 if (!$user) {
-    header('Location: ' . $home . '?show=login&login_err=nouser');
+    header('Location: ' . $loginPage . '?error=nouser');
     exit;
 }
 
@@ -239,7 +240,7 @@ if ($hash !== '') {
 error_log("LOGIN DEBUG - Password check: " . ($ok ? 'PASS' : 'FAIL'));
 
 if (!$ok) {
-    header('Location: ' . $home . '?show=login&login_err=wrongpass');
+    header('Location: ' . $loginPage . '?error=wrongpass');
     exit;
 }
 
@@ -248,7 +249,7 @@ if ($useTable === 'daily_dangky') {
     // Kiểm tra tài khoản đã bị xóa chưa
     if (isset($user['deleted_at']) && $user['deleted_at'] !== null) {
         error_log("LOGIN DEBUG - Account is deleted. User ID: " . $user['id']);
-        header('Location: ' . $home . '?show=login&login_err=account_deleted');
+        header('Location: ' . $loginPage . '?error=account_deleted');
         exit;
     }
     
@@ -268,7 +269,7 @@ if ($useTable === 'daily_dangky') {
         $_SESSION['login_error'] = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.';
         
         // Chuyển hướng về trang đăng nhập với thông báo lỗi
-        header('Location: ' . $home . '?show=login&login_err=account_locked');
+        header('Location: ' . $loginPage . '?error=account_locked');
         exit;
     }
 }
