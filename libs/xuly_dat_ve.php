@@ -1,5 +1,5 @@
 <?php
-// libs/xuly_dat_ve.php - stable version (no declare), includes user_id on INSERT
+// libs/xuly_dat_ve.php - stable version (no declare), includes user_id on INSERT AND TRỪ SỐ GHẾ
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -9,10 +9,10 @@ require_once __DIR__ . '/db_chuyenxe.php'; // $pdo (SQLite PDO)
 
 /*
  Flow MOCK:
- - Nhan form -> tao don 'pending' (payment_provider='mock')
- - Chuyen sang payments/mock_pay.php?order_id=...
- - Nguoi dung bam Thanh cong / That bai
- - mock ipn.php cap nhat trang thai + tru ghe (neu thanh cong)
+ - Nhận form -> tạo đơn 'pending' (payment_provider='mock')
+ - Chuyển sang payments/mock_pay.php?order_id=...
+ - Người dùng bấm Thành công / Thất bại
+ - mock ipn.php cập nhật trạng thái + trừ ghế (nếu thành công)
 */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Lay du lieu tu form
+// Lấy dữ liệu từ form
 $id_chuyen = (int)($_POST['id_chuyen'] ?? 0);
 $ho_ten    = trim($_POST['ho_ten'] ?? '');
 $sdt       = trim($_POST['sdt'] ?? '');
@@ -28,27 +28,32 @@ $email     = trim($_POST['email'] ?? '');
 $so_luong  = max(1, (int)($_POST['so_luong'] ?? 1));
 
 if ($id_chuyen <= 0 || $so_luong <= 0 || $ho_ten === '' || $sdt === '') {
-    echo "<script>alert('Du lieu khong hop le!');history.back();</script>";
+    echo "<script>alert('Dữ liệu không hợp lệ!');history.back();</script>";
     exit;
 }
 
-// Lay chuyen xe de tinh gia
-$st = $pdo->prepare("SELECT id, gia_ve FROM chuyenxe WHERE id = ?");
+// Lấy chuyến xe để tính giá và kiểm tra số ghế còn
+$st = $pdo->prepare("SELECT id, gia_ve, so_ghe_con FROM chuyenxe WHERE id = ?");
 $st->execute([$id_chuyen]);
 $cx = $st->fetch(PDO::FETCH_ASSOC);
 if (!$cx) {
-    echo "<script>alert('Chuyen xe khong ton tai!');location.href='../timkiemchuyenxe.php';</script>";
+    echo "<script>alert('Chuyến xe không tồn tại!');location.href='../timkiemchuyenxe.php';</script>";
+    exit;
+}
+$so_ghe_con = (int)$cx['so_ghe_con'];
+if ($so_luong > $so_ghe_con) {
+    echo "<script>alert('Không đủ số ghế!');history.back();</script>";
     exit;
 }
 $amount = (int)$cx['gia_ve'] * $so_luong;
 
-// Lay user_id neu da dang nhap
+// Lấy user_id nếu đã đăng nhập
 $user_id = isset($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : null;
 
-// Tao order_id duy nhat
+// Tạo order_id duy nhất
 $order_id = 'DV' . date('YmdHis') . '_' . strtoupper(bin2hex(random_bytes(3)));
 
-// Dam bao cot user_id ton tai (tuong thich DB cu)
+// Đảm bảo cột user_id tồn tại (tương thích DB cũ)
 try {
     $cols = $pdo->query("PRAGMA table_info(dat_ve)")->fetchAll(PDO::FETCH_ASSOC);
     $hasUserId = false;
@@ -62,7 +67,7 @@ try {
     // ignore migration error
 }
 
-// Tao bang neu chay moi hoan toan
+// Tạo bảng nếu chạy mới hoàn toàn
 $pdo->exec("CREATE TABLE IF NOT EXISTS dat_ve (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     id_chuyen INTEGER NOT NULL,
@@ -78,7 +83,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS dat_ve (
     user_id INTEGER
 )");
 
-// INSERT don co user_id
+// INSERT đơn có user_id
 $sql = "INSERT INTO dat_ve (
             id_chuyen, ho_ten, sdt, email, so_luong, ngay_dat,
             payment_provider, payment_status, amount, order_id, user_id
@@ -100,9 +105,13 @@ $ok = $stmt->execute([
 ]);
 
 if ($ok) {
+    // TRỪ SỐ GHẾ NGAY khi đặt đơn (nếu muốn chờ thanh toán thì chuyển sang mock_pay.php xử lý sau)
+    $stmt2 = $pdo->prepare('UPDATE chuyenxe SET so_ghe_con = so_ghe_con - ? WHERE id = ?');
+    $stmt2->execute([$so_luong, $id_chuyen]);
+
     header('Location: ../payments/mock_pay.php?order_id=' . urlencode($order_id));
     exit;
 } else {
-    echo "<script>alert('Khong the luu don dat ve!');history.back();</script>";
+    echo "<script>alert('Không thể lưu đơn đặt vé!');history.back();</script>";
     exit;
 }

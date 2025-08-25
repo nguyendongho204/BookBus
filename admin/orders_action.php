@@ -12,4 +12,4 @@ if ($id>0 && in_array($status,$allowed,true)) {
   $st = $pdo->prepare("UPDATE dat_ve SET payment_status=:s WHERE id=:id");
   $st->execute([':s'=>$status, ':id'=>$id]);
 }
-header("Location: orders.php");
+header("Location: orders.php"); 
